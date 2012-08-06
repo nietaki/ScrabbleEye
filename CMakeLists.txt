@@ -15,6 +15,14 @@ add_executable(${EXECUTABLE_NAME} ScrabbleEye.cxx)
 
 target_link_libraries(${EXECUTABLE_NAME} ${OpenCV_LIBS})
 
+##########
+## Install
+##########
+#executable
+install(TARGETS ${EXECUTABLE_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX})
+#resources
+file(COPY ${PROJECT_SOURCE_DIR}/res DESTINATION ${PROJECT_BINARY_DIR})
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/res DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 ##########
 ## Events
