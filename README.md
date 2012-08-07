@@ -4,7 +4,7 @@
 
 1. Hue / saturation filter to get the red pixels
 2. k-means clustering to locate the triple word score fields
-3. excluding the largest (count OR size) cluster to get orientation and exclude the SCRABBLE text
+3. excluding the largest (count OR size OR even better the standard deviation from the center of the cluster) cluster to get orientation and exclude the SCRABBLE text
 3. Locating corner pixels of the corner Triple Word fields 
 4. Finding homography by field edges
 5. modifying perspective matrix to compensate the thickness of the pieces

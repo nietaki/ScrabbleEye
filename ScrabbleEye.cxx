@@ -34,11 +34,27 @@ int main(int argc, char** argv)
   
   split(src_hsv, hsv_channels);
   split(src_bgr, bgr_channels);
-  Mat src = bgr_channels[2];
+  Mat src = bgr_channels[2]; //src is now the red channel
+  int h_lower_tresh, h_upper_tresh, sat_tresh, val_tresh;
+  h_lower_tresh = 10;
+  h_upper_tresh = 180 - h_lower_tresh;
+  sat_tresh = 255 * 8 / 10;
+  val_tresh = 255 * 5 / 10;
+  Mat h_lower, h_upper, sat, val, output;
   
+  compare(hsv_channels[0], h_lower_tresh, h_lower, CMP_LE); 
+  compare(hsv_channels[0], h_upper_tresh, h_upper, CMP_GE); 
  
- 
+  compare(hsv_channels[1], sat_tresh, sat, CMP_GE); 
+  compare(hsv_channels[2], val_tresh, val, CMP_GE);
+  
+  bitwise_or(h_lower, h_upper, output);
+  bitwise_and(output, sat, output);
+  bitwise_and(output, val, output);
+  
   Mat dst, cdst;
+  
+  src = output; //src is the processed thing
   Canny(src, dst, 50, 200, 3);
   cvtColor(dst, cdst, CV_GRAY2BGR);
  
