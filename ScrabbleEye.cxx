@@ -7,12 +7,37 @@
 using namespace cv;
 using namespace std;
 
+
 void help()
 {
   cout << "\nThis program demonstrates line finding with the Hough transform.\n"
           "Usage:\n"
           "./houghlines <image_name>, Default is pic1.jpg\n" << endl;
 }
+
+void clusterTriples(Mat mat, InputOutputArray labels, vector<vector<float> >& marked, vector<vector<float> > centres ) 
+{   
+  //todo: replace vectors of vectors with matrices
+  for(int i = 0; i < mat.rows; i++)
+  {
+    const unsigned char* Mi = mat.ptr<unsigned char>(i);
+    for(int j = 0; j < mat.cols; j++)
+    {
+      if(Mi[j] > 0)
+      {
+	vector<float> tmp;
+	tmp.push_back((float)i);
+	tmp.push_back((float)j);
+	marked.push_back(tmp);
+	labels.push_back(0);
+      }
+    }
+  }
+
+  //TermCriteria criteria(TermCriteria.EPS + TermCriteria.COUNT, 100, 0.1);
+  TermCriteria criteria;
+  double compactness = kmeans(marked, 8, labels, criteria, 7, KMEANS_RANDOM_CENTERS, centres);
+}  
 
 int main(int argc, char** argv)
 {
@@ -44,7 +69,7 @@ int main(int argc, char** argv)
   
   compare(hsv_channels[0], h_lower_tresh, h_lower, CMP_LE); 
   compare(hsv_channels[0], h_upper_tresh, h_upper, CMP_GE); 
- 
+  
   compare(hsv_channels[1], sat_tresh, sat, CMP_GE); 
   compare(hsv_channels[2], val_tresh, val, CMP_GE);
   
@@ -55,6 +80,11 @@ int main(int argc, char** argv)
   Mat dst, cdst;
   
   src = output; //src is the processed thing
+  
+  vector<vector<float> > marked;
+  vector<int> labels;
+  vector<vector<float> > centres;
+  //clusterTriples(src, labels, marked, centres);
   Canny(src, dst, 50, 200, 3);
   cvtColor(dst, cdst, CV_GRAY2BGR);
  
