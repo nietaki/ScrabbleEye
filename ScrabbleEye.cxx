@@ -15,9 +15,15 @@ void help()
           "./houghlines <image_name>, Default is pic1.jpg\n" << endl;
 }
 
-void clusterTriples(Mat mat, InputOutputArray labels, vector<vector<float> >& marked, vector<vector<float> > centres ) 
-{   
-  //todo: replace vectors of vectors with matrices
+void clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedArray/*, OutputArray centers */) 
+{
+  int cluster_count = 8;
+  int attempts = 7;
+  int marked_count = 0;
+  
+  Mat mat = matArray.getMat();
+  
+  vector<vector<float> > markedVec;
   for(int i = 0; i < mat.rows; i++)
   {
     const unsigned char* Mi = mat.ptr<unsigned char>(i);
@@ -25,18 +31,39 @@ void clusterTriples(Mat mat, InputOutputArray labels, vector<vector<float> >& ma
     {
       if(Mi[j] > 0)
       {
+	marked_count++;
+	
 	vector<float> tmp;
 	tmp.push_back((float)i);
 	tmp.push_back((float)j);
-	marked.push_back(tmp);
-	labels.push_back(0);
+	markedVec.push_back(tmp);
       }
     }
   }
-
+ 
+  markedArray.create(Size(2, marked_count), CV_32FC1);
+  Mat marked = markedArray.getMat();
+  //Mat marked(Size(2, marked_count), CV_32FC1);
+  for(int i=0; i < marked.rows; i++)
+  {
+    for(int j=0; j < marked.cols; j++)
+    {
+      marked.at<float>(i,j) = markedVec[i][j];
+    }
+  }
+  
+  //marked.create(Size(marked_count, 2), CV_32FC1);
+  //marked.getMat().assignTo();
+  labels.create(Size(marked_count, 1), CV_32SC1);
+  //centers.create(Size(cluster_count, 2), CV_32FC1);
   //TermCriteria criteria(TermCriteria.EPS + TermCriteria.COUNT, 100, 0.1);
   TermCriteria criteria;
-  double compactness = kmeans(marked, 8, labels, criteria, 7, KMEANS_RANDOM_CENTERS, centres);
+  Mat labels2(Size(1, marked_count), CV_32SC1);
+  vector<int> labels3(marked_count);
+  
+
+  double compactness = kmeans(marked, cluster_count, labels, criteria, attempts, KMEANS_RANDOM_CENTERS);
+  //exit( 0);
 }  
 
 int main(int argc, char** argv)
@@ -77,27 +104,39 @@ int main(int argc, char** argv)
   bitwise_and(output, sat, output);
   bitwise_and(output, val, output);
   
-  Mat dst, cdst;
+  Mat srcBgr;
   
   src = output; //src is the processed thing
   
-  vector<vector<float> > marked;
+  Mat marked;
   vector<int> labels;
-  vector<vector<float> > centres;
+  Mat centers;
   //clusterTriples(src, labels, marked, centres);
-  Canny(src, dst, 50, 200, 3);
-  cvtColor(dst, cdst, CV_GRAY2BGR);
+  clusterTriples(src, labels, marked /*,OutputArray marked, centers*/ ) ;
+  //Canny(src, dst, 50, 200, 3);
+  cvtColor(src, srcBgr, CV_GRAY2BGR);
  
-  vector<Vec4i> lines;
-  HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10 );
-  for( size_t i = 0; i < lines.size(); i++ )
+  //HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10 );
+  vector<Scalar> colors;
+  colors.push_back(Scalar(255,0,0));
+  colors.push_back(Scalar(255,255,0));
+  colors.push_back(Scalar(0,255,0));
+  colors.push_back(Scalar(0,255,255));
+  colors.push_back(Scalar(0,0,255));
+  colors.push_back(Scalar(255,0,255));
+  colors.push_back(Scalar(200,100,200));
+  colors.push_back(Scalar(50,100,50));
+  
+  for(size_t i = 0; i < labels.size() ; i++ )
   {
-    Vec4i l = lines[i];
-    line( cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
+    Point_<float> currentPoint(marked.at<float>(i, 1), marked.at<float>(i, 0));
+    Point currentIntPoint = currentPoint;
+    circle(srcBgr, currentIntPoint, 1, colors[labels[i]]);
+    //line( cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
   }
  
-  imshow("source", src);
-  imshow("detected lines", cdst);
+  imshow("source", srcBgr);
+
  
   waitKey();
  
