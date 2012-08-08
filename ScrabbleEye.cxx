@@ -15,10 +15,11 @@ void help()
           "./houghlines <image_name>, Default is pic1.jpg\n" << endl;
 }
 
-void clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedArray/*, OutputArray centers */) 
+void clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedArray, OutputArray centersArray ) 
 {
+  
   int cluster_count = 8;
-  int attempts = 7;
+  int attempts = 15;
   int marked_count = 0;
   
   Mat mat = matArray.getMat();
@@ -34,13 +35,16 @@ void clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedA
 	marked_count++;
 	
 	vector<float> tmp;
-	tmp.push_back((float)i);
+	
 	tmp.push_back((float)j);
+	tmp.push_back((float)i);
 	markedVec.push_back(tmp);
       }
     }
   }
- 
+  centersArray.create(Size(2, cluster_count), CV_32FC1);
+  Mat centers = centersArray.getMat();
+  
   markedArray.create(Size(2, marked_count), CV_32FC1);
   Mat marked = markedArray.getMat();
   //Mat marked(Size(2, marked_count), CV_32FC1);
@@ -48,6 +52,7 @@ void clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedA
   {
     for(int j=0; j < marked.cols; j++)
     {
+      
       marked.at<float>(i,j) = markedVec[i][j];
     }
   }
@@ -62,7 +67,7 @@ void clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedA
   vector<int> labels3(marked_count);
   
 
-  double compactness = kmeans(marked, cluster_count, labels, criteria, attempts, KMEANS_RANDOM_CENTERS);
+  double compactness = kmeans(marked, cluster_count, labels, criteria, attempts, KMEANS_PP_CENTERS, centers);
   //exit( 0);
 }  
 
@@ -112,7 +117,7 @@ int main(int argc, char** argv)
   vector<int> labels;
   Mat centers;
   //clusterTriples(src, labels, marked, centres);
-  clusterTriples(src, labels, marked /*,OutputArray marked, centers*/ ) ;
+  clusterTriples(src, labels, marked, centers ) ;
   //Canny(src, dst, 50, 200, 3);
   cvtColor(src, srcBgr, CV_GRAY2BGR);
  
@@ -129,10 +134,17 @@ int main(int argc, char** argv)
   
   for(size_t i = 0; i < labels.size() ; i++ )
   {
-    Point_<float> currentPoint(marked.at<float>(i, 1), marked.at<float>(i, 0));
+    Point_<float> currentPoint(marked.at<float>(i, 0), marked.at<float>(i, 1));
     Point currentIntPoint = currentPoint;
     circle(srcBgr, currentIntPoint, 1, colors[labels[i]]);
     //line( cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
+  }
+  
+  for(size_t i=0; i< centers.rows; i++)
+  {
+    Point_<float> currentPoint(centers.at<float>(i, 0), centers.at<float>(i, 1));
+    Point currentIntPoint = currentPoint;
+    circle(srcBgr, currentIntPoint, 9, CV_RGB(200,200,200), 3);
   }
  
   imshow("source", srcBgr);
