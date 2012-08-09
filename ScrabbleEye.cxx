@@ -204,6 +204,8 @@ int main(int argc, char** argv)
     }
   }
   //FIXME getting the closest centers won't work for creating the field "snake", have to think of something else
+  //answer: all cluster centers that are close (enough) to the middlepoint between two other cluster centres qualify
+  // the close enough can be calculated relatively to the dinstance between the two clusters
   
   //TODO: move this down and erase all the non-corner fields?
   //erasing the most sparse cluster
