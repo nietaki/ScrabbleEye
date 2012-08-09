@@ -63,9 +63,6 @@ void clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedA
   //centers.create(Size(cluster_count, 2), CV_32FC1);
   //TermCriteria criteria(TermCriteria.EPS + TermCriteria.COUNT, 100, 0.1);
   TermCriteria criteria;
-  Mat labels2(Size(1, marked_count), CV_32SC1);
-  vector<int> labels3(marked_count);
-  
 
   double compactness = kmeans(marked, cluster_count, labels, criteria, attempts, KMEANS_PP_CENTERS, centers);
   //exit( 0);
@@ -76,6 +73,8 @@ int main(int argc, char** argv)
   const char* filename = argc >= 2 ? argv[1] : "res/bed/bed_board.jpg";
  
   Mat src_bgr = imread(filename);
+  
+  //TODO gaussian blur the image slightly to take care of the text on the red fields
  
   if(src_bgr.empty())
   {
@@ -119,8 +118,12 @@ int main(int argc, char** argv)
   //clusterTriples(src, labels, marked, centres);
   clusterTriples(src, labels, marked, centers ) ;
   //Canny(src, dst, 50, 200, 3);
+  
+  /**
+  *** visualising the clusters
+  **/
   cvtColor(src, srcBgr, CV_GRAY2BGR);
- 
+  
   //HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10 );
   vector<Scalar> colors;
   colors.push_back(Scalar(255,0,0));
@@ -137,7 +140,6 @@ int main(int argc, char** argv)
     Point_<float> currentPoint(marked.at<float>(i, 0), marked.at<float>(i, 1));
     Point currentIntPoint = currentPoint;
     circle(srcBgr, currentIntPoint, 1, colors[labels[i]]);
-    //line( cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, CV_AA);
   }
   
   for(size_t i=0; i< centers.rows; i++)
@@ -148,7 +150,75 @@ int main(int argc, char** argv)
   }
  
   imshow("source", srcBgr);
-
+  
+  /**
+  *** flood-filling the clusters
+  **/
+  unsigned char floodedMark = 150;
+  for(int i = 0; i< centers.rows ; i++)
+  {
+    Point_<float> currentPoint(centers.at<float>(i, 0), centers.at<float>(i, 1));
+    Point currentIntPoint = currentPoint;
+    if(src.at<unsigned char>(currentIntPoint) == 255)
+    {
+      floodFill(src, currentIntPoint, floodedMark);
+    }
+    else
+    {
+      cout	<< currentIntPoint.x << "," << currentIntPoint.y << ": " 
+		<< (int)src.at<unsigned char>(currentIntPoint.x, currentIntPoint.y) << endl;
+      //circle(src, currentIntPoint, 9, CV_RGB(255,150,150), 3);
+    }
+  }
+  
+  
+  
+  /**
+  *** counting the points that are in the cluster but aren't in the flood-filled area
+  **/
+  //TODO think about the distance from cluster centre variance
+  vector<int> misplacedPixelCounts(centers.rows);
+  
+  //flooding all the spots that contain a cluster center
+  for(size_t i = 0; i < labels.size() ; i++ )
+  {
+    Point_<float> currentPoint(marked.at<float>(i, 0), marked.at<float>(i, 1));
+    Point currentIntPoint = currentPoint;
+    if(src.at<unsigned char>(currentIntPoint) != floodedMark)
+    {
+      misplacedPixelCounts[labels[i]]++;
+      src.at<unsigned char>(currentIntPoint) = 0;
+    }
+  }
+  
+  // << endl;
+  //finding the label that doesn't stick closely to the cluster centre
+  int bottomLabel = -1;
+  int maxMisplacedPixels = 0;
+  for(size_t i = 0; i < centers.rows; i++)
+  {
+    if(misplacedPixelCounts[i] > maxMisplacedPixels)
+    {
+      maxMisplacedPixels = misplacedPixelCounts[i];
+      bottomLabel = i;
+    }
+  }
+  //FIXME getting the closest centers won't work for creating the field "snake", have to think of something else
+  
+  //TODO: move this down and erase all the non-corner fields?
+  //erasing the most sparse cluster
+  for(size_t i = 0; i < labels.size() ; i++ )
+  {
+    if(labels[i] == bottomLabel)
+    {
+      Point_<float> currentPoint(marked.at<float>(i, 0), marked.at<float>(i, 1));
+      Point currentIntPoint = currentPoint;
+      src.at<unsigned char>(currentIntPoint) = 0;
+    }
+  }
+  
+  imshow("floodfill", src);
+  
  
   waitKey();
  
