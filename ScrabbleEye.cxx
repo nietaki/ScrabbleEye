@@ -70,8 +70,10 @@ void clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedA
 
 int main(int argc, char** argv)
 {
-  const char* filename = argc >= 2 ? argv[1] : "res/bed/bed_board.jpg";
+  const char* filename = argc >= 2 ? argv[1] : "res/boards/1080/board.jpg";
  
+  int default_window_width = 1024;
+  int default_window_height = 768;
   Mat src_bgr = imread(filename);
   
   //TODO gaussian blur the image slightly to take care of the text on the red fields
@@ -148,8 +150,11 @@ int main(int argc, char** argv)
     Point currentIntPoint = currentPoint;
     circle(srcBgr, currentIntPoint, 9, CV_RGB(200,200,200), 3);
   }
- 
-  imshow("source", srcBgr);
+  const char* win1name = "clusters";
+  namedWindow(win1name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
+  resizeWindow(win1name, default_window_width, default_window_height);
+  
+  imshow(win1name, srcBgr);
   
   /**
   *** flood-filling the clusters
@@ -218,8 +223,10 @@ int main(int argc, char** argv)
       src.at<unsigned char>(currentIntPoint) = 0;
     }
   }
-  
-  imshow("floodfill", src);
+  const char* win2name = "flooded";
+  namedWindow(win2name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
+  imshow(win2name, src);
+  resizeWindow(win2name,default_window_width, default_window_height);
   
  
   waitKey();
