@@ -16,8 +16,19 @@ void help()
           "./houghlines <image_name>, Default is pic1.jpg\n" << endl;
 }
 
+template <class T>
+vector<T> rotate(const vector<T>& rotatedVector, typename vector<T>::const_iterator newBeginning)
+{
+  vector<T> ret;
+  ret.insert(ret.end(), newBeginning, rotatedVector.end());
+  ret.insert(ret.end(), rotatedVector.begin(), newBeginning);
+  return ret;
+}
+
 vector<Point> getNonZeroPoints(InputArray matArray) {
   Mat mat = matArray.getMat();
+  
+  cout << norm(Point(-3, 4)) << endl;
   
   vector<Point> markedVec;
   for(int i = 0; i < mat.rows; i++)
@@ -273,11 +284,27 @@ int main(int argc, char** argv)
       continue;
     
     if(src.at<unsigned char>(lastPoint) != src.at<unsigned char>(curPoint)){
-      segments.push_back(pair<Point, Point>(lastPoint, curPoint));
+      segments.push_back(pair<Point, Point  >(lastPoint, curPoint));
       line(srcBgr, lastPoint, curPoint, Scalar(255,255,255), 2);
     }
     
   }
+  vector<std::pair<Point, Point> >::iterator it, newBeginning;
+  double longestSegment = 0.0;
+  for(it = segments.begin(); it != segments.end(); it++)
+  {
+    if(norm(it->first - it->second) > longestSegment){
+      //TODO instead of choosing the longest choose tha one who's middle is closest to the cluster that
+      //     has been disposed off and than stitch together 
+      longestSegment = norm(it->first - it->second);
+      cout << it-> first << " to " << it-> second << ": " << longestSegment << endl;
+      newBeginning = it;
+    }
+  }
+  
+  segments = rotate(segments, newBeginning);
+  
+  line(srcBgr, segments.front().first, segments.front().second, CV_RGB(255, 0,0), 3);
  
   const char* win1name = "clusters";
   namedWindow(win1name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
