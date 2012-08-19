@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <utility>
 
 using namespace cv;
 using namespace std;
@@ -13,6 +14,27 @@ void help()
   cout << "\nThis program demonstrates line finding with the Hough transform.\n"
           "Usage:\n"
           "./houghlines <image_name>, Default is pic1.jpg\n" << endl;
+}
+
+vector<Point> getNonZeroPoints(InputArray matArray) {
+  Mat mat = matArray.getMat();
+  
+  vector<Point> markedVec;
+  for(int i = 0; i < mat.rows; i++)
+  {
+    const unsigned char* Mi = mat.ptr<unsigned char>(i);
+    for(int j = 0; j < mat.cols; j++)
+    {
+      if(Mi[j] > 0)
+      {
+	Point tmp;
+	tmp.x = j;
+	tmp.y = i;
+	markedVec.push_back(tmp);
+      }
+    }
+  }
+  return markedVec;
 }
 
 void clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedArray, OutputArray centersArray ) 
@@ -150,12 +172,13 @@ int main(int argc, char** argv)
     Point currentIntPoint = currentPoint;
     circle(srcBgr, currentIntPoint, 9, CV_RGB(200,200,200), 3);
   }
+  /*
   const char* win1name = "clusters";
   namedWindow(win1name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
   resizeWindow(win1name, default_window_width, default_window_height);
   
   imshow(win1name, srcBgr);
-  
+  */
   /**
   *** flood-filling the clusters
   **/
@@ -166,7 +189,9 @@ int main(int argc, char** argv)
     Point currentIntPoint = currentPoint;
     if(src.at<unsigned char>(currentIntPoint) == 255)
     {
-      floodFill(src, currentIntPoint, floodedMark);
+      //cout << "color: " << floodedMark + (unsigned char) i << endl;
+      //different colors denote different clusters
+      floodFill(src, currentIntPoint, floodedMark + (unsigned char)i);
     }
     else
     {
@@ -189,7 +214,7 @@ int main(int argc, char** argv)
   {
     Point_<float> currentPoint(marked.at<float>(i, 0), marked.at<float>(i, 1));
     Point currentIntPoint = currentPoint;
-    if(src.at<unsigned char>(currentIntPoint) != floodedMark)
+    if(src.at<unsigned char>(currentIntPoint) == 255)
     {
       misplacedPixelCounts[labels[i]]++;
       src.at<unsigned char>(currentIntPoint) = 0;
@@ -223,12 +248,47 @@ int main(int argc, char** argv)
       src.at<unsigned char>(currentIntPoint) = 0;
     }
   }
-  const char* win2name = "flooded";
+  
+  /**
+  *** getting the edge points
+  **/
+  vector<Point> nonZeroPoints;
+  nonZeroPoints = getNonZeroPoints(src);
+  vector<int> hullPointIndices;
+  vector<std::pair<Point, Point> > segments;
+  
+  convexHull(nonZeroPoints, hullPointIndices, true, false);
+  //let's wrap the indices
+  hullPointIndices.push_back(hullPointIndices[0]);
+  
+  Point curPoint, lastPoint;
+  for(vector<int>::iterator it = hullPointIndices.begin(); it != hullPointIndices.end(); it++) {
+    lastPoint = curPoint;
+    curPoint = nonZeroPoints[*it];
+    
+    //src.at<unsigned char>(edgePoint.y, edgePoint.y) = 255;
+    //src.at<unsigned char>(edgePoint) = 255;
+    circle(srcBgr, curPoint, 5, Scalar(255,255,255), 3);
+    if(it == hullPointIndices.begin())
+      continue;
+    
+    if(src.at<unsigned char>(lastPoint) != src.at<unsigned char>(curPoint)){
+      segments.push_back(pair<Point, Point>(lastPoint, curPoint));
+      line(srcBgr, lastPoint, curPoint, Scalar(255,255,255), 2);
+    }
+    
+  }
+ 
+  const char* win1name = "clusters";
+  namedWindow(win1name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
+  resizeWindow(win1name, default_window_width, default_window_height);
+  imshow(win1name, srcBgr);
+ 
+  const char* win2name = "flooded_edges";
   namedWindow(win2name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
   imshow(win2name, src);
   resizeWindow(win2name,default_window_width, default_window_height);
   
- 
   waitKey();
  
   return 0;
