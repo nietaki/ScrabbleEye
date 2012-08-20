@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <limits>
+#include <set>
 #include <utility>
 #include <vector>
 
@@ -53,7 +54,7 @@ unsigned char getFloodMark(int clusterNo)
   return FLOOD_MARK + (unsigned char) clusterNo;
 }
 
-int getNoByMark(unsigned char mark)
+int getLabelByMark(unsigned char mark)
 {
   return (int) (mark - FLOOD_MARK);
 }
@@ -315,11 +316,22 @@ int main(int argc, char** argv)
   //let's wrap the indices
   hullPointIndices.push_back(hullPointIndices[0]);
   
+  /**
+  *** retrieving the segments
+  **/
+  
+  set<int> untouchedClusterLabels;
+  for(int i = 0; i<8; i++) {
+    untouchedClusterLabels.insert(i);
+  }
+  untouchedClusterLabels.erase(bottomLabel);
+  
   Point curPoint, lastPoint;
   for(vector<int>::iterator it = hullPointIndices.begin(); it != hullPointIndices.end(); it++) {
     lastPoint = curPoint;
     curPoint = nonZeroPoints[*it];
     
+    untouchedClusterLabels.erase(getLabelByMark(src.at<unsigned char>(curPoint)));
     //src.at<unsigned char>(edgePoint.y, edgePoint.y) = 255;
     //src.at<unsigned char>(edgePoint) = 255;
     circle(srcBgr, curPoint, 5, Scalar(255,255,255), 3);
@@ -337,6 +349,17 @@ int main(int argc, char** argv)
   
   line(srcBgr, segments.front().first, segments.front().second, CV_RGB(255, 0,0), 3);
  
+  cout << "number of clusters not touching the convex hull: " << untouchedClusterLabels.size() << endl;
+  
+  vector<Segment> segmentsToManipulate(segments.begin()+1, segments.end());
+  while(!untouchedClusterLabels.empty()){
+    int curLabel = *(untouchedClusterLabels.begin());
+    untouchedClusterLabels.erase(curLabel);
+    segmentsToManipulate.erase(findClosestSegment(segmentsToManipulate, centerPoints[curLabel]));
+  }
+  cout << "number of segments left to manipulate (+-concatenate) " << segmentsToManipulate.size() << endl; 
+  //TODO somehow replace segments to manipulate in the original segments "contcatinating" the left pairs
+  
   const char* win1name = "clusters";
   namedWindow(win1name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
   resizeWindow(win1name, default_window_width, default_window_height);
