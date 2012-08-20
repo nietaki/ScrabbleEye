@@ -2,8 +2,10 @@
 #include "opencv2/imgproc/imgproc.hpp"
 
 #include <iostream>
-#include <vector>
+#include <limits>
 #include <utility>
+#include <vector>
+
 
 using namespace cv;
 using namespace std;
@@ -26,6 +28,23 @@ vector<T> rotate(const vector<T>& rotatedVector, typename vector<T>::const_itera
 }
 
 typedef std::pair<Point, Point> Segment;
+
+vector<Segment>::iterator findClosestSegment(vector<Segment>& segments, Point point)
+{
+  vector<Segment>::iterator ret = segments.begin();
+  double shortestDistance = std::numeric_limits<double>::max();
+  
+  for(vector<Segment>::iterator it = segments.begin(); it != segments.end(); it++)
+  {
+    Segment curSegment = *it;
+    double curDistance = norm(((curSegment.first + curSegment.second) * 0.5) - point);
+    if(curDistance < shortestDistance){
+      shortestDistance = curDistance;
+      ret = it;
+    }
+  }
+  return ret;
+}
 
 unsigned char FLOOD_MARK = 150;
 
