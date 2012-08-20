@@ -332,20 +332,8 @@ int main(int argc, char** argv)
     }
     
   }
-  vector<Segment>::iterator it, newBeginning;
-  double longestSegment = 0.0;
-  for(it = segments.begin(); it != segments.end(); it++)
-  {
-    if(norm(it->first - it->second) > longestSegment){
-      //TODO instead of choosing the longest choose tha one who's middle is closest to the cluster that
-      //     has been disposed off and than stitch together 
-      longestSegment = norm(it->first - it->second);
-      cout << it-> first << " to " << it-> second << ": " << longestSegment << endl;
-      newBeginning = it;
-    }
-  }
   
-  segments = rotate(segments, newBeginning);
+  segments = rotate(segments, findClosestSegment(segments, centerPoints[bottomLabel]));
   
   line(srcBgr, segments.front().first, segments.front().second, CV_RGB(255, 0,0), 3);
  
