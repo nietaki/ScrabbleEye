@@ -25,6 +25,32 @@ vector<T> rotate(const vector<T>& rotatedVector, typename vector<T>::const_itera
   return ret;
 }
 
+typedef std::pair<Point, Point> Segment;
+
+unsigned char FLOOD_MARK = 150;
+
+unsigned char getFloodMark(int clusterNo)
+{
+  return FLOOD_MARK + (unsigned char) clusterNo;
+}
+
+int getNoByMark(unsigned char mark)
+{
+  return (int) (mark - FLOOD_MARK);
+}
+
+vector<Point> centerMatrixToPointVector(Mat centers)
+{
+  vector<Point> ret;
+  for(size_t i=0; i< centers.rows; i++)
+  {
+    Point_<float> currentPoint(centers.at<float>(i, 0), centers.at<float>(i, 1));
+    Point currentIntPoint = currentPoint;
+    ret.push_back(currentIntPoint);
+  }
+  return ret;
+}
+
 vector<Point> getNonZeroPoints(InputArray matArray) {
   Mat mat = matArray.getMat();
   
@@ -177,11 +203,10 @@ int main(int argc, char** argv)
     circle(srcBgr, currentIntPoint, 1, colors[labels[i]]);
   }
   
-  for(size_t i=0; i< centers.rows; i++)
+  vector<Point> centerPoints = centerMatrixToPointVector(centers);
+  for(vector<Point>::iterator it = centerPoints.begin(); it != centerPoints.end(); it++)
   {
-    Point_<float> currentPoint(centers.at<float>(i, 0), centers.at<float>(i, 1));
-    Point currentIntPoint = currentPoint;
-    circle(srcBgr, currentIntPoint, 9, CV_RGB(200,200,200), 3);
+    circle(srcBgr, *it, 9, CV_RGB(200,200,200), 3);
   }
   /*
   const char* win1name = "clusters";
@@ -193,16 +218,15 @@ int main(int argc, char** argv)
   /**
   *** flood-filling the clusters
   **/
-  unsigned char floodedMark = 150;
-  for(int i = 0; i< centers.rows ; i++)
+  //TODO: make sure it works correctly even if the center is on the black text
+  for(int i = 0; i < centerPoints.size() ; i++)
   {
-    Point_<float> currentPoint(centers.at<float>(i, 0), centers.at<float>(i, 1));
-    Point currentIntPoint = currentPoint;
+    Point currentIntPoint = centerPoints[i];
     if(src.at<unsigned char>(currentIntPoint) == 255)
     {
       //cout << "color: " << floodedMark + (unsigned char) i << endl;
       //different colors denote different clusters
-      floodFill(src, currentIntPoint, floodedMark + (unsigned char)i);
+      floodFill(src, currentIntPoint, getFloodMark(i));
     }
     else
     {
@@ -266,7 +290,7 @@ int main(int argc, char** argv)
   vector<Point> nonZeroPoints;
   nonZeroPoints = getNonZeroPoints(src);
   vector<int> hullPointIndices;
-  vector<std::pair<Point, Point> > segments;
+  vector<Segment> segments;
   
   convexHull(nonZeroPoints, hullPointIndices, true, false);
   //let's wrap the indices
@@ -284,12 +308,12 @@ int main(int argc, char** argv)
       continue;
     
     if(src.at<unsigned char>(lastPoint) != src.at<unsigned char>(curPoint)){
-      segments.push_back(pair<Point, Point  >(lastPoint, curPoint));
+      segments.push_back(Segment(lastPoint, curPoint));
       line(srcBgr, lastPoint, curPoint, Scalar(255,255,255), 2);
     }
     
   }
-  vector<std::pair<Point, Point> >::iterator it, newBeginning;
+  vector<Segment>::iterator it, newBeginning;
   double longestSegment = 0.0;
   for(it = segments.begin(); it != segments.end(); it++)
   {
