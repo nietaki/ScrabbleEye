@@ -17,44 +17,7 @@ using namespace std;
 using namespace se;
 
 
-/** a structure representing a line equation 
-*** a*x + b*y = c
-***/
-struct Line {
-  double a,b,c;
-  
-  public:
-    
-    Line():a(0),b(0),c(0){}
-    Line(double a, double b, double c):a(a),b(b),c(c){}
-    
-    Point2d findIntersection(Line other){
-      Point2d ret;
-      return ret;
-    }
-    
-    void print()
-    {
-      std::cout << a << "*x + " << b << "*y = " << c << endl;
-    }
-  
-    static Line getBySegment(Segment segment)
-    {
-      double x1, x2, y1, y2;
-      x1 = (double) segment.first.x;
-      y1 = (double) segment.first.y;
-      x2 = (double) segment.second.x;
-      y2 = (double) segment.second.y;
-      
-      Line ret;
-      double tmp;
-      ret.a = (y2 - y1)/(x2 - x1);
-      ret.b = -1.0;
-      ret.c = ret.a * x1 - y1;
-      
-      return ret;  
-    }
-};
+
 
 void help()
 {

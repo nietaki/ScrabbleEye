@@ -7,10 +7,10 @@
 
 using namespace cv;
 
-typedef std::pair<Point, Point> Segment;
+
 
 namespace se {
-
+  typedef std::pair<Point, Point> Segment;
   
   class Utils {
   public:

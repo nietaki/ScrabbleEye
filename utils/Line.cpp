@@ -17,6 +17,23 @@
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 */
-
+#include <iostream>
 #include "Line.hpp"
+
+namespace se {
+
+  Line::Line():a(0),b(0),c(0){}
+  Line::Line(double a, double b, double c):a(a),b(b),c(c){}
+  
+  Point2d Line::findIntersection(Line other){
+    Point2d ret;
+    return ret;
+  }
+  
+  void Line::print()
+  {
+    std::cout << a << "*x + " << b << "*y = " << c << std::endl;
+  }
+  
+}
 
