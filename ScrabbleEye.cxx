@@ -8,6 +8,7 @@
 
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/opencv.hpp"
 
 #include "utils/Line.hpp"
 #include "utils/Utils.hpp"
@@ -15,9 +16,6 @@
 using namespace cv;
 using namespace std;
 using namespace se;
-
-
-
 
 void help()
 {
@@ -258,6 +256,14 @@ int main(int argc, char** argv)
     circle(srcBgr, tmp, 12, CV_RGB(0,0,250), 6);
   }
   //concatenateSegment(vector<Segment>& segments, Segment firstSegment);
+  
+  FileStorage fs2("res/yml/lifecam_studio_1080.yml", FileStorage::READ);
+  
+  Mat camera_matrix, distortion_coefficients;
+  fs2["camera_matrix"] >> camera_matrix;
+  fs2["distortion_coefficients"] >> distortion_coefficients;
+  double square_size = (double)fs2["square_size"];
+  
   
   const char* win1name = "clusters";
   namedWindow(win1name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
