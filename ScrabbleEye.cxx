@@ -17,6 +17,12 @@ using namespace cv;
 using namespace std;
 using namespace se;
 
+
+//measured using Euro Cent coins, in mm
+const double TILE_WIDTH = 18.70;
+const double TILE_THICKNESS = 19.7 / 3.0;
+const int BOARD_SIZE = 15;
+
 void help()
 {
   cout << "\nThis program demonstrates line finding with the Hough transform.\n"
@@ -191,7 +197,8 @@ int main(int argc, char** argv)
   vector<int> hullPointIndices;
   vector<Segment> segments;
   
-  convexHull(nonZeroPoints, hullPointIndices, true, false);
+  //TODO: check why clockwise parameter works reversly
+  convexHull(nonZeroPoints, hullPointIndices, false, false);
   //let's wrap the indices
   hullPointIndices.push_back(hullPointIndices[0]);
   
@@ -206,9 +213,13 @@ int main(int argc, char** argv)
   untouchedClusterLabels.erase(bottomLabel);
   
   Point curPoint, lastPoint;
+  int pointNo = 0;
   for(vector<int>::iterator it = hullPointIndices.begin(); it != hullPointIndices.end(); it++) {
     lastPoint = curPoint;
     curPoint = nonZeroPoints[*it];
+    
+    
+    //putText(srcBgr, Utils::intToString(pointNo) , curPoint, 0, 5, CV_RGB(255,255,255));
     
     untouchedClusterLabels.erase(getLabelByMark(src.at<unsigned char>(curPoint)));
     //src.at<unsigned char>(edgePoint.y, edgePoint.y) = 255;
@@ -222,6 +233,7 @@ int main(int argc, char** argv)
       line(srcBgr, lastPoint, curPoint, Scalar(255,255,255), 2);
     }
     
+    pointNo++;
   }
   
   segments = rotate(segments, findClosestSegment(segments, centerPoints[bottomLabel]));
@@ -266,17 +278,36 @@ int main(int argc, char** argv)
   
   Mat rvec, tvec;
   vector<Point3f> objectPoints;
-  float boardSize = 15.0 * 2.6;
-  objectPoints.push_back(Point3f(0,         0,          -0.5));
-  objectPoints.push_back(Point3f(0,         boardSize,  -0.5));
-  objectPoints.push_back(Point3f(boardSize, boardSize,  -0.5));
-  objectPoints.push_back(Point3f(boardSize, 0,          -0.5));
+  float boardWidth = TILE_WIDTH * BOARD_SIZE;
+  objectPoints.push_back(Point3f(0,         0,          -TILE_THICKNESS));
+  objectPoints.push_back(Point3f(0,         boardWidth,  -TILE_THICKNESS));
+  objectPoints.push_back(Point3f(boardWidth, boardWidth,  -TILE_THICKNESS));
+  objectPoints.push_back(Point3f(boardWidth, 0,          -TILE_THICKNESS));
+  
+  vector<Point3f> elevatedPoints;
+  elevatedPoints.push_back(Point3f(0,         0,          0));
+  elevatedPoints.push_back(Point3f(0,         boardWidth,  0));
+  elevatedPoints.push_back(Point3f(boardWidth, boardWidth,  0));
+  elevatedPoints.push_back(Point3f(boardWidth, 0,          0));
   
   bool transformFound = solvePnP(objectPoints, corners, camera_matrix, distortion_coefficients, rvec, tvec);
   assert(transformFound);
   
   cout << "rvec:" << endl << rvec << endl;
   cout << "tvec:" << endl << tvec << endl;
+  
+  vector<Point2f> elevatedImagePoints;
+  projectPoints(elevatedPoints, rvec, tvec, camera_matrix, distortion_coefficients, elevatedImagePoints);
+
+  int i =0;
+  for(vector<Point2f>::iterator it = elevatedImagePoints.begin(); it != elevatedImagePoints.end(); it++)
+  {
+    Point tmp = *it;
+    circle(srcBgr, tmp, 12, CV_RGB(255,150,150), 6);
+    putText(src,Utils::intToString(i) , tmp, 0, 5, CV_RGB(255,255,255));
+    i++;
+  }
+  
   
   const char* win1name = "clusters";
   namedWindow(win1name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);

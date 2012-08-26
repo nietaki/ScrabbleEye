@@ -164,9 +164,13 @@ namespace se {
   
   void paintSegments(Mat canvas, vector<Segment> lines, Scalar color, int thickness)
   {
+    int i =0;
     for(vector<Segment>::iterator it = lines.begin(); it != lines.end(); it++)
     {
+      
+      putText(canvas ,Utils::intToString(i) , (it->first + it->second)*0.5, 0, 5, CV_RGB(255,255,255));
       line(canvas, it->first, it->second, color, thickness);
+      i++;
     }
   }
 }
