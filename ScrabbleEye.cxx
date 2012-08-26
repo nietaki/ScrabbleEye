@@ -264,6 +264,19 @@ int main(int argc, char** argv)
   fs2["distortion_coefficients"] >> distortion_coefficients;
   double square_size = (double)fs2["square_size"];
   
+  Mat rvec, tvec;
+  vector<Point3f> objectPoints;
+  float boardSize = 15.0 * 2.6;
+  objectPoints.push_back(Point3f(0,         0,          -0.5));
+  objectPoints.push_back(Point3f(0,         boardSize,  -0.5));
+  objectPoints.push_back(Point3f(boardSize, boardSize,  -0.5));
+  objectPoints.push_back(Point3f(boardSize, 0,          -0.5));
+  
+  bool transformFound = solvePnP(objectPoints, corners, camera_matrix, distortion_coefficients, rvec, tvec);
+  assert(transformFound);
+  
+  cout << "rvec:" << endl << rvec << endl;
+  cout << "tvec:" << endl << tvec << endl;
   
   const char* win1name = "clusters";
   namedWindow(win1name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
