@@ -5,3 +5,5 @@ cmake_install.cmake
 install_manifest.txt
 *.kdev4
 *~
+*swp
+.kdev_include_paths

@@ -53,10 +53,6 @@ struct Line {
     }
 };
 
-
-
-
-
 void help()
 {
   cout << "\nThis program demonstrates line finding with the Hough transform.\n"
