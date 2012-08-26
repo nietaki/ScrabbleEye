@@ -1,6 +1,3 @@
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -9,10 +6,16 @@
 #include <utility>
 #include <vector>
 
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+
+#include "utils/Line.hpp"
+#include "utils/Utils.hpp"
 
 using namespace cv;
 using namespace std;
-typedef std::pair<Point, Point> Segment;
+using namespace se;
+
 
 /** a structure representing a line equation 
 *** a*x + b*y = c
