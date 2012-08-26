@@ -69,7 +69,8 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/res DESTINATION ${CMAKE_INSTALL_PREFIX})
   ## "_test.cxx" to the test name make sure to add all the new tests here
 
   set(TESTNAMES 
-    sample 
+    sample
+    lines
     #sth_else
     )
  

@@ -10,6 +10,8 @@ using namespace cv;
 
 
 namespace se {
+  const unsigned char FLOOD_MARK = 150;
+  
   typedef std::pair<Point, Point> Segment;
   
   class Utils {
@@ -20,5 +22,30 @@ namespace se {
     static std::string intToString(int s);
     static std::string readFile(std::string path);
   };
+  
+  template <class T>
+  vector<T> rotate(const vector<T>& rotatedVector, typename vector<T>::const_iterator newBeginning)
+  {
+    vector<T> ret;
+    ret.insert(ret.end(), newBeginning, rotatedVector.end());
+    ret.insert(ret.end(), rotatedVector.begin(), newBeginning);
+    return ret;
+  }
+
+  vector<Segment>::iterator findClosestSegment(vector<Segment>& segments, Point point);
+
+  void concatenateSegment(vector<Segment>& segments, Segment firstSegment);
+
+  unsigned char getFloodMark(int clusterNo);
+
+  int getLabelByMark(unsigned char mark);
+
+  vector<Point> centerMatrixToPointVector(Mat centers);
+
+  vector<Point> getNonZeroPoints(InputArray matArray);
+
+  void clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedArray, OutputArray centersArray );
+
+  void paintSegments(Mat canvas, vector<Segment> lines, Scalar color, int thickness);
 }
 #endif /* UTILS_HPP_ */
