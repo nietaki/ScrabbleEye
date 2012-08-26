@@ -20,8 +20,9 @@
 
 #ifndef LINE_HPP
 #define LINE_HPP
-#include "Utils.hpp"
 
+#include <vector>
+#include "Utils.hpp"
 
 namespace se {
   /** a structure representing a line equation 
@@ -39,22 +40,10 @@ namespace se {
       
       void print();
       
-      static Line getBySegment(Segment segment)
-      {
-        double x1, x2, y1, y2;
-        x1 = (double) segment.first.x;
-        y1 = (double) segment.first.y;
-        x2 = (double) segment.second.x;
-        y2 = (double) segment.second.y;
-        
-        Line ret;
-        double tmp;
-        ret.a = (y2 - y1)/(x2 - x1);
-        ret.b = -1.0;
-        ret.c = ret.a * x1 - y1;
-        
-        return ret;  
-      }
+      static Line getBySegment(Segment segment);
+      
+      static vector<Point2d> getCorners(vector<Segment> boundingSegments);
+      static vector<Point2d> getCorners(vector<Line> boundingLines);
   };
 }
 #endif // LINE_HPP

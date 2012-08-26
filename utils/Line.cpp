@@ -51,5 +51,46 @@ namespace se {
     std::cout << a << "*x + " << b << "*y = " << c << std::endl;
   }
   
+  Line Line::getBySegment(Segment segment)
+  {
+    double x1, x2, y1, y2;
+    x1 = (double) segment.first.x;
+    y1 = (double) segment.first.y;
+    x2 = (double) segment.second.x;
+    y2 = (double) segment.second.y;
+    
+    Line ret;
+    double tmp;
+    ret.a = (y2 - y1)/(x2 - x1);
+    ret.b = -1.0;
+    ret.c = ret.a * x1 - y1;
+    
+    return ret;  
+  }
+  
+  vector<Point2d> Line::getCorners(vector<Segment> boundingSegments)
+  {
+    vector<Line> lines;
+    for(vector<Segment>::iterator it = boundingSegments.begin(); it != boundingSegments.end(); it++)
+    {
+      lines.push_back(Line::getBySegment(*it));
+    }
+    return getCorners(lines);
+  }
+  
+  vector<Point2d> Line::getCorners(vector<Line> boundingLines)
+  {
+    vector<Point2d> ret;
+    int cornerCount = boundingLines.size();
+    for(int i = 0; i < cornerCount; i++)
+    {
+      int j = (i + 1) % cornerCount;
+      ret.push_back(boundingLines[i].intersect(boundingLines[j]));
+    }
+    return ret;
+  }
+  
+  
+  
 }
 

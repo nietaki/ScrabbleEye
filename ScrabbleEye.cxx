@@ -250,8 +250,13 @@ int main(int argc, char** argv)
   }
   
   paintSegments(srcBgr, segments, CV_RGB(0,150,0), 3);
+  vector<Point2d> corners = Line::getCorners(segments);
   
-  
+  for(vector<Point2d>::iterator it = corners.begin(); it != corners.end(); it++)
+  {
+    Point tmp = *it;
+    circle(srcBgr, tmp, 12, CV_RGB(0,0,250), 6);
+  }
   //concatenateSegment(vector<Segment>& segments, Segment firstSegment);
   
   const char* win1name = "clusters";
