@@ -25,8 +25,24 @@ namespace se {
   Line::Line():a(0),b(0),c(0){}
   Line::Line(double a, double b, double c):a(a),b(b),c(c){}
   
-  Point2d Line::findIntersection(Line other){
-    Point2d ret;
+  Point2d Line::intersect(Line other){
+    //A*x = B
+    //rows, cols, type
+    Mat A(2, 2, CV_64FC1);
+    Mat x(2, 1, CV_64FC1);
+    Mat B(2, 1, CV_64FC1);
+   
+    A.at<double>(0, 0) = this->a;
+    A.at<double>(0, 1) = this->b;
+    B.at<double>(0, 0) = this->c;
+    
+    A.at<double>(1, 0) = other.a;
+    A.at<double>(1, 1) = other.b;
+    B.at<double>(1, 0) = other.c;
+    
+    solve(A, B, x, DECOMP_QR);
+    
+    Point2d ret(x.at<double>(0, 0), x.at<double>(1, 0));
     return ret;
   }
   

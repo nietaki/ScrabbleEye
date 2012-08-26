@@ -76,6 +76,6 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/res DESTINATION ${CMAKE_INSTALL_PREFIX})
  
   foreach(testname ${TESTNAMES})
           add_executable(tests/${testname}.test tests/${testname}_test.cxx)
-          target_link_libraries(tests/${testname}.test utils gmock_main)
+          target_link_libraries(tests/${testname}.test utils ${OpenCV_LIBS} gmock_main)
           add_test(${testname} tests/${testname}.test)
   endforeach(testname)

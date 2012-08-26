@@ -35,7 +35,7 @@ namespace se {
       Line();
       Line(double a, double b, double c);
       
-      Point2d findIntersection(Line other);
+      Point2d intersect(Line other);
       
       void print();
       
