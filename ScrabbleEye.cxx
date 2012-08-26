@@ -1,6 +1,8 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
+#include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <limits>
 #include <set>
@@ -10,6 +12,49 @@
 
 using namespace cv;
 using namespace std;
+typedef std::pair<Point, Point> Segment;
+
+/** a structure representing a line equation 
+*** a*x + b*y = c
+***/
+struct Line {
+  double a,b,c;
+  
+  public:
+    
+    Line():a(0),b(0),c(0){}
+    Line(double a, double b, double c):a(a),b(b),c(c){}
+    
+    Point2d findIntersection(Line other){
+      Point2d ret;
+      return ret;
+    }
+    
+    void print()
+    {
+      std::cout << a << "*x + " << b << "*y = " << c << endl;
+    }
+  
+    static Line getBySegment(Segment segment)
+    {
+      double x1, x2, y1, y2;
+      x1 = (double) segment.first.x;
+      y1 = (double) segment.first.y;
+      x2 = (double) segment.second.x;
+      y2 = (double) segment.second.y;
+      
+      Line ret;
+      double tmp;
+      ret.a = (y2 - y1)/(x2 - x1);
+      ret.b = -1.0;
+      ret.c = ret.a * x1 - y1;
+      
+      return ret;  
+    }
+};
+
+
+
 
 
 void help()
@@ -28,7 +73,7 @@ vector<T> rotate(const vector<T>& rotatedVector, typename vector<T>::const_itera
   return ret;
 }
 
-typedef std::pair<Point, Point> Segment;
+
 
 vector<Segment>::iterator findClosestSegment(vector<Segment>& segments, Point point)
 {
@@ -46,6 +91,19 @@ vector<Segment>::iterator findClosestSegment(vector<Segment>& segments, Point po
   }
   return ret;
 }
+
+void concatenateSegment(vector<Segment>& segments, Segment firstSegment)
+{
+  vector<Segment>::iterator target1, target2;
+  target1 = find(segments.begin(), segments.end(), firstSegment);
+  assert(target1 != segments.end());
+  target2 = target1+1;
+  assert(target2 != segments.end());
+  
+  target1->second = target2->second;
+  segments.erase(target2);
+}
+
 
 unsigned char FLOOD_MARK = 150;
 
@@ -147,8 +205,22 @@ void clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedA
   //exit( 0);
 }  
 
+void paintSegments(Mat canvas, vector<Segment> lines, Scalar color, int thickness)
+{
+  for(vector<Segment>::iterator it = lines.begin(); it != lines.end(); it++)
+  {
+    line(canvas, it->first, it->second, color, thickness);
+  }
+}
+
 int main(int argc, char** argv)
 {
+  Point p1(1,2);
+  Point p2(3,-2);
+  Segment seg(p1,p2);
+  Line l1 = Line::getBySegment(seg);
+  l1.print();
+  exit(0);
   const char* filename = argc >= 2 ? argv[1] : "res/boards/1080/board.jpg";
  
   int default_window_width = 1024;
@@ -351,6 +423,7 @@ int main(int argc, char** argv)
  
   cout << "number of clusters not touching the convex hull: " << untouchedClusterLabels.size() << endl;
   
+  //get all but the first (bottom) segment
   vector<Segment> segmentsToManipulate(segments.begin()+1, segments.end());
   while(!untouchedClusterLabels.empty()){
     int curLabel = *(untouchedClusterLabels.begin());
@@ -359,6 +432,18 @@ int main(int argc, char** argv)
   }
   cout << "number of segments left to manipulate (+-concatenate) " << segmentsToManipulate.size() << endl; 
   //TODO somehow replace segments to manipulate in the original segments "contcatinating" the left pairs
+  
+  for(vector<Segment>::iterator it = segmentsToManipulate.begin(); it != segmentsToManipulate.end(); it++)
+  {
+    concatenateSegment(segments, *it);
+    //yes, we're skipping one segment
+    assert(++it != segmentsToManipulate.end());
+  }
+  
+  paintSegments(srcBgr, segments, CV_RGB(0,150,0), 3);
+  
+  
+  //concatenateSegment(vector<Segment>& segments, Segment firstSegment);
   
   const char* win1name = "clusters";
   namedWindow(win1name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
