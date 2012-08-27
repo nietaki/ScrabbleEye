@@ -22,6 +22,7 @@ using namespace se;
 const double TILE_WIDTH = 18.70;
 const double TILE_THICKNESS = 19.7 / 3.0;
 const int BOARD_SIZE = 15;
+const int TILE_PIXEL_WIDTH = 40;
 
 void help()
 {
@@ -34,18 +35,20 @@ void help()
 
 int main(int argc, char** argv)
 {
-  const char* filename = argc >= 2 ? argv[1] : "res/boards/1080/board.jpg";
- 
+  const char* board_filename = argc >= 2 ? argv[1] : "res/boards/1080/board.jpg";
+  const char* pieces_filename = "res/boards/1080/pieces.jpg";
+  
   int default_window_width = 1024;
   int default_window_height = 768;
-  Mat src_bgr = imread(filename);
+  Mat src_bgr = imread(board_filename);
+  Mat piecesImage = imread(pieces_filename);
   
   //TODO gaussian blur the image slightly to take care of the text on the red fields
  
   if(src_bgr.empty())
   {
     help();
-    cout << "can not open " << filename << endl;
+    cout << "can not open " << board_filename << endl;
     return -1;
   }
   CV_Assert(src_bgr.depth() == CV_8U);
@@ -297,17 +300,34 @@ int main(int argc, char** argv)
   cout << "tvec:" << endl << tvec << endl;
   
   vector<Point2f> elevatedImagePoints;
+  vector<Point> elevatedIntPoints;
   projectPoints(elevatedPoints, rvec, tvec, camera_matrix, distortion_coefficients, elevatedImagePoints);
-
+  
   int i =0;
   for(vector<Point2f>::iterator it = elevatedImagePoints.begin(); it != elevatedImagePoints.end(); it++)
   {
     Point tmp = *it;
+    elevatedIntPoints.push_back(tmp);
     circle(srcBgr, tmp, 12, CV_RGB(255,150,150), 6);
     putText(src,Utils::intToString(i) , tmp, 0, 5, CV_RGB(255,255,255));
     i++;
   }
   
+  vector<Point2f> dstPoints;
+  
+  int dstWidth = BOARD_SIZE * TILE_PIXEL_WIDTH;
+  dstPoints.push_back(Point2f(0,         dstWidth));
+  dstPoints.push_back(Point2f(0,         0));
+  dstPoints.push_back(Point2f(dstWidth, 0));
+  dstPoints.push_back(Point2f(dstWidth, dstWidth));
+  
+  
+  
+  Mat homography = findHomography(elevatedImagePoints, dstPoints);
+  
+  Size outputSize(dstWidth, dstWidth);
+  Mat dst(outputSize, srcBgr.type());
+  warpPerspective(piecesImage, dst, homography, outputSize);
   
   const char* win1name = "clusters";
   namedWindow(win1name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
@@ -318,6 +338,13 @@ int main(int argc, char** argv)
   namedWindow(win2name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
   imshow(win2name, src);
   resizeWindow(win2name,default_window_width, default_window_height);
+  
+  const char* win3name = "output";
+  namedWindow(win3name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
+  imshow(win3name, dst);
+  resizeWindow(win3name,default_window_width, default_window_height);
+  
+  
   
   waitKey();
  
