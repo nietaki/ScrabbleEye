@@ -329,6 +329,15 @@ int main(int argc, char** argv)
   Mat dst(outputSize, srcBgr.type());
   warpPerspective(piecesImage, dst, homography, outputSize);
   
+  Scalar gridColor = CV_RGB(100,50,0);
+  int gridThickness = 2;
+  for(int i = 1; i < BOARD_SIZE; i++)
+  {
+    int pos = i * TILE_PIXEL_WIDTH;
+    line(dst, Point(0, pos), Point(BOARD_SIZE * TILE_PIXEL_WIDTH, pos), gridColor, gridThickness);
+    line(dst, Point(pos, 0), Point(pos, BOARD_SIZE * TILE_PIXEL_WIDTH), gridColor, gridThickness);
+  }
+  
   const char* win1name = "clusters";
   namedWindow(win1name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
   resizeWindow(win1name, default_window_width, default_window_height);
