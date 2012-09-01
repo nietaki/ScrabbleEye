@@ -1,4 +1,5 @@
 add_library(utils
+  ImageOperations.cpp
   Line.cpp 
-  Utils.cxx
+  Utils.cpp
   )

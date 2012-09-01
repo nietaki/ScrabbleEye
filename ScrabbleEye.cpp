@@ -11,6 +11,7 @@
 #include "opencv2/opencv.hpp"
 
 #include "utils/constants.hpp"
+#include "utils/ImageOperations.hpp"
 #include "utils/Line.hpp"
 #include "utils/Utils.hpp"
 

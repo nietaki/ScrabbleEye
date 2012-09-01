@@ -10,7 +10,7 @@ include_directories("${PROJECT_SOURCE_DIR}")
 
 
 set(EXECUTABLE_NAME "se")
-add_executable(${EXECUTABLE_NAME} ScrabbleEye.cxx) 
+add_executable(${EXECUTABLE_NAME} ScrabbleEye.cpp) 
 #add_executable(${EXECUTABLE_NAME} ScrabbleEye.cpp Constants.cpp) 
 
 target_link_libraries(${EXECUTABLE_NAME} ${OpenCV_LIBS})
@@ -75,7 +75,7 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/res DESTINATION ${CMAKE_INSTALL_PREFIX})
     )
  
   foreach(testname ${TESTNAMES})
-          add_executable(tests/${testname}.test tests/${testname}_test.cxx)
+          add_executable(tests/${testname}.test tests/${testname}_test.cpp)
           target_link_libraries(tests/${testname}.test utils ${OpenCV_LIBS} gmock_main)
           add_test(${testname} tests/${testname}.test)
   endforeach(testname)
