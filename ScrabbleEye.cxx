@@ -10,19 +10,13 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/opencv.hpp"
 
+#include "utils/constants.hpp"
 #include "utils/Line.hpp"
 #include "utils/Utils.hpp"
 
 using namespace cv;
 using namespace std;
 using namespace se;
-
-
-//measured using Euro Cent coins, in mm
-const double TILE_WIDTH = 18.70;
-const double TILE_THICKNESS = 19.7 / 3.0;
-const int BOARD_SIZE = 15;
-const int TILE_PIXEL_WIDTH = 40;
 
 void help()
 {
@@ -35,20 +29,16 @@ void help()
 
 int main(int argc, char** argv)
 {
-  const char* board_filename = argc >= 2 ? argv[1] : "res/boards/1080/board.jpg";
-  const char* pieces_filename = "res/boards/1080/pieces.jpg";
-  
-  int default_window_width = 1024;
-  int default_window_height = 768;
-  Mat src_bgr = imread(board_filename);
-  Mat piecesImage = imread(pieces_filename);
+
+  Mat src_bgr = imread(BOARD_FILENAME);
+  Mat piecesImage = imread(PIECES_FILENAME);
   
   //TODO gaussian blur the image slightly to take care of the text on the red fields
  
   if(src_bgr.empty())
   {
     help();
-    cout << "can not open " << board_filename << endl;
+    cout << "can not open " << BOARD_FILENAME << endl;
     return -1;
   }
   CV_Assert(src_bgr.depth() == CV_8U);
@@ -340,18 +330,18 @@ int main(int argc, char** argv)
   
   const char* win1name = "clusters";
   namedWindow(win1name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
-  resizeWindow(win1name, default_window_width, default_window_height);
+  resizeWindow(win1name, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
   imshow(win1name, srcBgr);
  
   const char* win2name = "flooded_edges";
   namedWindow(win2name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
   imshow(win2name, src);
-  resizeWindow(win2name,default_window_width, default_window_height);
+  resizeWindow(win2name,DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
   
   const char* win3name = "output";
   namedWindow(win3name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
   imshow(win3name, dst);
-  resizeWindow(win3name,default_window_width, default_window_height);
+  resizeWindow(win3name,DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
   
   
   
