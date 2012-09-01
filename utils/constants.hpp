@@ -1,6 +1,6 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
+    ScrabbleEye - live Scrabble game analysis app
+    Copyright (C) 2012 nietaki@gmail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

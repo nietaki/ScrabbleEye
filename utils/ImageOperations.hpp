@@ -1,6 +1,6 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
+    ScrabbleEye - live Scrabble game analysis app
+    Copyright (C) 2012 nietaki@gmail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,8 +21,18 @@
 #ifndef IMAGEOPERATIONS_HPP
 #define IMAGEOPERATIONS_HPP
 
+#include "opencv2/opencv.hpp"
+
+using namespace cv;
+using namespace std;
+
+namespace se {
+
 class ImageOperations
 {
+  public:
+    static void clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedArray, OutputArray centersArray);
 };
 
+};
 #endif // IMAGEOPERATIONS_HPP

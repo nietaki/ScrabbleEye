@@ -44,8 +44,6 @@ namespace se {
 
   vector<Point> getNonZeroPoints(InputArray matArray);
 
-  void clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedArray, OutputArray centersArray );
-
   void paintSegments(Mat canvas, vector<Segment> lines, Scalar color, int thickness);
 }
 #endif /* UTILS_HPP_ */
