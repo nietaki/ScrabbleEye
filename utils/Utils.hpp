@@ -45,5 +45,7 @@ namespace se {
   vector<Point> getNonZeroPoints(InputArray matArray);
 
   void paintSegments(Mat canvas, vector<Segment> lines, Scalar color, int thickness);
+  
+  void displayImage(Mat image, const char* windowName);
 }
 #endif /* UTILS_HPP_ */

@@ -36,6 +36,9 @@
 using namespace cv;
 using namespace std;
 using namespace se;
+  
+  const char* BOARD_FILENAME = "res/boards/1080/night/board.jpg";
+  const char* PIECES_FILENAME = "res/boards/1080/night/pieces.jpg";
 
 void help()
 {
@@ -44,63 +47,31 @@ void help()
           "./houghlines <image_name>, Default is pic1.jpg\n" << endl;
 }
 
-
-
 int main(int argc, char** argv)
 {
 
-  Mat src_bgr = imread(BOARD_FILENAME);
+  Mat boardImage = imread(BOARD_FILENAME);
   Mat piecesImage = imread(PIECES_FILENAME);
-  
-  //TODO gaussian blur the image slightly to take care of the text on the red fields
- 
-  if(src_bgr.empty())
-  {
-    help();
-    cout << "can not open " << BOARD_FILENAME << endl;
-    return -1;
-  }
-  CV_Assert(src_bgr.depth() == CV_8U);
-  CV_Assert(src_bgr.channels() == 3);
-  Mat src_hsv;
-  vector<Mat> bgr_channels, hsv_channels;
-  cvtColor(src_bgr, src_hsv, CV_BGR2HSV);
-  
-  split(src_hsv, hsv_channels);
-  split(src_bgr, bgr_channels);
-  Mat src = bgr_channels[2]; //src is now the red channel
-  int h_lower_tresh, h_upper_tresh, sat_tresh, val_tresh;
-  h_lower_tresh = 10;
-  h_upper_tresh = 180 - h_lower_tresh;
-  sat_tresh = 255 * 8 / 10;
-  val_tresh = 255 * 5 / 10;
-  Mat h_lower, h_upper, sat, val, output;
-  
-  compare(hsv_channels[0], h_lower_tresh, h_lower, CMP_LE); 
-  compare(hsv_channels[0], h_upper_tresh, h_upper, CMP_GE); 
-  
-  compare(hsv_channels[1], sat_tresh, sat, CMP_GE); 
-  compare(hsv_channels[2], val_tresh, val, CMP_GE);
-  
-  bitwise_or(h_lower, h_upper, output);
-  bitwise_and(output, sat, output);
-  bitwise_and(output, val, output);
+    
+  Mat blurredBoardImage;
+  GaussianBlur(boardImage, blurredBoardImage, Size(GAUSSIAN_SIZE, GAUSSIAN_SIZE), GAUSSIAN_SIGMA, GAUSSIAN_SIGMA);
+  displayImage(blurredBoardImage, "gausser");
+  Mat triplesOneChannel;
+  ImageOperations::extractTriples(blurredBoardImage, triplesOneChannel);
+  displayImage(triplesOneChannel, "extracted_triples");
   
   Mat srcBgr;
   
-  src = output; //src is the processed thing
+  Mat markedPoints;
+  vector<int> pointLabels;
+  Mat clusterCenters;
   
-  Mat marked;
-  vector<int> labels;
-  Mat centers;
-  //clusterTriples(src, labels, marked, centres);
-  ImageOperations::clusterTriples(src, labels, marked, centers ) ;
-  //Canny(src, dst, 50, 200, 3);
+  ImageOperations::clusterTriples(triplesOneChannel, pointLabels, markedPoints, clusterCenters) ;
   
   /**
   *** visualising the clusters
   **/
-  cvtColor(src, srcBgr, CV_GRAY2BGR);
+  cvtColor(triplesOneChannel, srcBgr, CV_GRAY2BGR);
   
   //HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10 );
   vector<Scalar> colors;
@@ -113,25 +84,19 @@ int main(int argc, char** argv)
   colors.push_back(Scalar(200,100,200));
   colors.push_back(Scalar(50,100,50));
   
-  for(size_t i = 0; i < labels.size() ; i++ )
+  for(size_t i = 0; i < pointLabels.size() ; i++ )
   {
-    Point_<float> currentPoint(marked.at<float>(i, 0), marked.at<float>(i, 1));
+    Point_<float> currentPoint(markedPoints.at<float>(i, 0), markedPoints.at<float>(i, 1));
     Point currentIntPoint = currentPoint;
-    circle(srcBgr, currentIntPoint, 1, colors[labels[i]]);
+    circle(srcBgr, currentIntPoint, 1, colors[pointLabels[i]]);
   }
   
-  vector<Point> centerPoints = centerMatrixToPointVector(centers);
+  vector<Point> centerPoints = centerMatrixToPointVector(clusterCenters);
   for(vector<Point>::iterator it = centerPoints.begin(); it != centerPoints.end(); it++)
   {
     circle(srcBgr, *it, 9, CV_RGB(200,200,200), 3);
   }
-  /*
-  const char* win1name = "clusters";
-  namedWindow(win1name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
-  resizeWindow(win1name, default_window_width, default_window_height);
-  
-  imshow(win1name, srcBgr);
-  */
+
   /**
   *** flood-filling the clusters
   **/
@@ -139,16 +104,16 @@ int main(int argc, char** argv)
   for(int i = 0; i < centerPoints.size() ; i++)
   {
     Point currentIntPoint = centerPoints[i];
-    if(src.at<unsigned char>(currentIntPoint) == 255)
+    if(triplesOneChannel.at<unsigned char>(currentIntPoint) == 255)
     {
       //cout << "color: " << floodedMark + (unsigned char) i << endl;
       //different colors denote different clusters
-      floodFill(src, currentIntPoint, getFloodMark(i));
+      floodFill(triplesOneChannel, currentIntPoint, getFloodMark(i));
     }
     else
     {
-      cout	<< currentIntPoint.x << "," << currentIntPoint.y << ": " 
-		<< (int)src.at<unsigned char>(currentIntPoint.x, currentIntPoint.y) << endl;
+      cout  << currentIntPoint.x << "," << currentIntPoint.y << ": " 
+    << (int)triplesOneChannel.at<unsigned char>(currentIntPoint) << endl;
       //circle(src, currentIntPoint, 9, CV_RGB(255,150,150), 3);
     }
   }
@@ -159,17 +124,17 @@ int main(int argc, char** argv)
   *** counting the points that are in the cluster but aren't in the flood-filled area
   **/
   //TODO think about the distance from cluster centre variance
-  vector<int> misplacedPixelCounts(centers.rows);
+  vector<int> misplacedPixelCounts(clusterCenters.rows);
   
   //flooding all the spots that contain a cluster center
-  for(size_t i = 0; i < labels.size() ; i++ )
+  for(size_t i = 0; i < pointLabels.size() ; i++ )
   {
-    Point_<float> currentPoint(marked.at<float>(i, 0), marked.at<float>(i, 1));
+    Point_<float> currentPoint(markedPoints.at<float>(i, 0), markedPoints.at<float>(i, 1));
     Point currentIntPoint = currentPoint;
-    if(src.at<unsigned char>(currentIntPoint) == 255)
+    if(triplesOneChannel.at<unsigned char>(currentIntPoint) == 255)
     {
-      misplacedPixelCounts[labels[i]]++;
-      src.at<unsigned char>(currentIntPoint) = 0;
+      misplacedPixelCounts[pointLabels[i]]++;
+      triplesOneChannel.at<unsigned char>(currentIntPoint) = 0;
     }
   }
   
@@ -177,7 +142,7 @@ int main(int argc, char** argv)
   //finding the label that doesn't stick closely to the cluster centre
   int bottomLabel = -1;
   int maxMisplacedPixels = 0;
-  for(size_t i = 0; i < centers.rows; i++)
+  for(size_t i = 0; i < clusterCenters.rows; i++)
   {
     if(misplacedPixelCounts[i] > maxMisplacedPixels)
     {
@@ -191,13 +156,13 @@ int main(int argc, char** argv)
   
   //TODO: move this down and erase all the non-corner fields?
   //erasing the most sparse cluster
-  for(size_t i = 0; i < labels.size() ; i++ )
+  for(size_t i = 0; i < pointLabels.size() ; i++ )
   {
-    if(labels[i] == bottomLabel)
+    if(pointLabels[i] == bottomLabel)
     {
-      Point_<float> currentPoint(marked.at<float>(i, 0), marked.at<float>(i, 1));
+      Point_<float> currentPoint(markedPoints.at<float>(i, 0), markedPoints.at<float>(i, 1));
       Point currentIntPoint = currentPoint;
-      src.at<unsigned char>(currentIntPoint) = 0;
+      triplesOneChannel.at<unsigned char>(currentIntPoint) = 0;
     }
   }
   
@@ -205,7 +170,7 @@ int main(int argc, char** argv)
   *** getting the edge points
   **/
   vector<Point> nonZeroPoints;
-  nonZeroPoints = getNonZeroPoints(src);
+  nonZeroPoints = getNonZeroPoints(triplesOneChannel);
   vector<int> hullPointIndices;
   vector<Segment> segments;
   
@@ -233,14 +198,14 @@ int main(int argc, char** argv)
     
     //putText(srcBgr, Utils::intToString(pointNo) , curPoint, 0, 5, CV_RGB(255,255,255));
     
-    untouchedClusterLabels.erase(getLabelByMark(src.at<unsigned char>(curPoint)));
+    untouchedClusterLabels.erase(getLabelByMark(triplesOneChannel.at<unsigned char>(curPoint)));
     //src.at<unsigned char>(edgePoint.y, edgePoint.y) = 255;
     //src.at<unsigned char>(edgePoint) = 255;
     circle(srcBgr, curPoint, 5, Scalar(255,255,255), 3);
     if(it == hullPointIndices.begin())
       continue;
     
-    if(src.at<unsigned char>(lastPoint) != src.at<unsigned char>(curPoint)){
+    if(triplesOneChannel.at<unsigned char>(lastPoint) != triplesOneChannel.at<unsigned char>(curPoint)){
       segments.push_back(Segment(lastPoint, curPoint));
       line(srcBgr, lastPoint, curPoint, Scalar(255,255,255), 2);
     }
@@ -263,7 +228,7 @@ int main(int argc, char** argv)
   }
   cout << "number of segments left to manipulate (+-concatenate) " << segmentsToManipulate.size() << endl; 
   //TODO somehow replace segments to manipulate in the original segments "contcatinating" the left pairs
-  
+
   for(vector<Segment>::iterator it = segmentsToManipulate.begin(); it != segmentsToManipulate.end(); it++)
   {
     concatenateSegment(segments, *it);
@@ -302,7 +267,8 @@ int main(int argc, char** argv)
   elevatedPoints.push_back(Point3f(boardWidth, boardWidth,  0));
   elevatedPoints.push_back(Point3f(boardWidth, 0,          0));
   
-  bool transformFound = solvePnP(objectPoints, corners, camera_matrix, distortion_coefficients, rvec, tvec);
+  //bool transformFound = solvePnP(objectPoints, corners, camera_matrix, distortion_coefficients, rvec, tvec);
+  bool transformFound = solvePnP(objectPoints, corners, camera_matrix, noArray(), rvec, tvec);
   assert(transformFound);
   
   cout << "rvec:" << endl << rvec << endl;
@@ -311,6 +277,7 @@ int main(int argc, char** argv)
   vector<Point2f> elevatedImagePoints;
   vector<Point> elevatedIntPoints;
   projectPoints(elevatedPoints, rvec, tvec, camera_matrix, distortion_coefficients, elevatedImagePoints);
+  projectPoints(elevatedPoints, rvec, tvec, camera_matrix, noArray(), elevatedImagePoints);
   
   int i =0;
   for(vector<Point2f>::iterator it = elevatedImagePoints.begin(); it != elevatedImagePoints.end(); it++)
@@ -318,7 +285,7 @@ int main(int argc, char** argv)
     Point tmp = *it;
     elevatedIntPoints.push_back(tmp);
     circle(srcBgr, tmp, 12, CV_RGB(255,150,150), 6);
-    putText(src,Utils::intToString(i) , tmp, 0, 5, CV_RGB(255,255,255));
+    putText(triplesOneChannel,Utils::intToString(i) , tmp, 0, 5, CV_RGB(255,255,255));
     i++;
   }
   
@@ -347,22 +314,9 @@ int main(int argc, char** argv)
     line(dst, Point(pos, 0), Point(pos, BOARD_SIZE * TILE_PIXEL_WIDTH), gridColor, gridThickness);
   }
   
-  const char* win1name = "clusters";
-  namedWindow(win1name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
-  resizeWindow(win1name, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
-  imshow(win1name, srcBgr);
- 
-  const char* win2name = "flooded_edges";
-  namedWindow(win2name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
-  imshow(win2name, src);
-  resizeWindow(win2name,DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
-  
-  const char* win3name = "output";
-  namedWindow(win3name, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
-  imshow(win3name, dst);
-  resizeWindow(win3name,DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
-  
-  
+  displayImage(srcBgr, "clusters");
+  displayImage(triplesOneChannel,"flooded_edges");
+  displayImage(dst,"output");
   
   waitKey();
  

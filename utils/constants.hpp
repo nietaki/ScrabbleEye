@@ -24,16 +24,15 @@
 namespace se {
   //measured using Euro Cent coins, in mm
   const double TILE_WIDTH = 18.70;
-  const double TILE_THICKNESS = 19.7 / 3.0;
+  const double TILE_THICKNESS = 5.0;
   const int BOARD_SIZE = 15;
   const int TILE_PIXEL_WIDTH = 40;
-  
-  const char* BOARD_FILENAME = "res/boards/1080/board.jpg";
-  const char* PIECES_FILENAME = "res/boards/1080/pieces.jpg";
-  
+
   const int DEFAULT_WINDOW_WIDTH = 1024;
   const int DEFAULT_WINDOW_HEIGHT = 768;
   
+  const int GAUSSIAN_SIZE = 7;
+  const double GAUSSIAN_SIGMA = 4.0;
 }
 
 #endif // CONSTANTS_HPP

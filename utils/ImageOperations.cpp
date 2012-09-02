@@ -20,6 +20,7 @@
 
 #include <vector>
 
+#include "constants.hpp"
 #include "ImageOperations.hpp"
 
 using namespace cv;
@@ -28,9 +29,43 @@ using namespace se;
 
 namespace se {
 
+void ImageOperations::extractTriples(InputArray boardImageArray, OutputArray triplesOneChannelArray)
+{
+  Mat boardImage = boardImageArray.getMat();
+  
+  CV_Assert(!boardImage.empty());
+  CV_Assert(boardImage.depth() == CV_8U);
+  CV_Assert(boardImage.channels() == 3);
+  
+  Mat src_hsv;
+  vector<Mat> bgr_channels, hsv_channels;
+  cvtColor(boardImage, src_hsv, CV_BGR2HSV);
+  
+  split(src_hsv, hsv_channels);
+  split(boardImage, bgr_channels);
+
+  int h_lower_tresh, h_upper_tresh, sat_tresh, val_tresh;
+  h_lower_tresh = 15;
+  h_upper_tresh = 180 - h_lower_tresh;
+  sat_tresh = 255 * 6 / 10;
+  val_tresh = 255 * 5 / 10;
+  Mat h_lower, h_upper, sat, val, output;
+  
+  compare(hsv_channels[0], h_lower_tresh, h_lower, CMP_LE); 
+  compare(hsv_channels[0], h_upper_tresh, h_upper, CMP_GE); 
+  
+  compare(hsv_channels[1], sat_tresh, sat, CMP_GE); 
+  compare(hsv_channels[2], val_tresh, val, CMP_GE);
+  
+  bitwise_or(h_lower, h_upper, output);
+  bitwise_and(output, sat, output);
+  bitwise_and(output, val, output);
+  
+  output.copyTo(triplesOneChannelArray);
+}
+  
 void ImageOperations::clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedArray, OutputArray centersArray ) 
 {
-  
   int cluster_count = 8;
   int attempts = 15;
   int marked_count = 0;
@@ -60,25 +95,19 @@ void ImageOperations::clusterTriples(InputArray matArray, OutputArray labels, Ou
   
   markedArray.create(Size(2, marked_count), CV_32FC1);
   Mat marked = markedArray.getMat();
-  //Mat marked(Size(2, marked_count), CV_32FC1);
+
   for(int i=0; i < marked.rows; i++)
   {
     for(int j=0; j < marked.cols; j++)
     {
-      
       marked.at<float>(i,j) = markedVec[i][j];
     }
   }
   
-  //marked.create(Size(marked_count, 2), CV_32FC1);
-  //marked.getMat().assignTo();
+
   labels.create(Size(marked_count, 1), CV_32SC1);
-  //centers.create(Size(cluster_count, 2), CV_32FC1);
-  //TermCriteria criteria(TermCriteria.EPS + TermCriteria.COUNT, 100, 0.1);
   TermCriteria criteria;
-  
   double compactness = kmeans(marked, cluster_count, labels, criteria, attempts, KMEANS_PP_CENTERS, centers);
-  //exit( 0);
 }  
 
 }

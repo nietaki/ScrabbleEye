@@ -1,9 +1,11 @@
-#include "Utils.hpp"
-
 #include <sstream>
 #include <fstream>
 #include <streambuf>
 #include <iostream>
+
+#include "Utils.hpp"
+#include "constants.hpp"
+
 namespace se {
   using namespace std;
   Utils::Utils() {
@@ -119,6 +121,13 @@ namespace se {
       line(canvas, it->first, it->second, color, thickness);
       i++;
     }
+  }
+  
+  void displayImage(Mat image, const char* windowName)
+  {
+    namedWindow(windowName, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
+    resizeWindow(windowName, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+    imshow(windowName, image);
   }
 }
 
