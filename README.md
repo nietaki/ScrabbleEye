@@ -1,4 +1,8 @@
+(this project is suspended. It might be rewritten to Scala and continued in summer 2013)
+
 # ScrabbleEye #
+
+an automatic computer-vision powered referee for your game of SCRABBLE
 
 ## Action plan ##
 
