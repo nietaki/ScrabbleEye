@@ -4,9 +4,41 @@
 cmake_minimum_required (VERSION 2.8)
 project(ScrabbleEye) #uzywane przykladowo w nazwie projektu VS
 
+##############
+# Google Test
+##############
+INCLUDE(ExternalProject)
+ExternalProject_Add(
+    gmock 
+    SVN_REPOSITORY http://googlemock.googlecode.com/svn/trunk/ 
+    TIMEOUT 10
+    # Force separate output paths for debug and release builds to allow easy
+    # identification of correct lib in subsequent TARGET_LINK_LIBRARIES commands
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+               -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=DebugLibs
+               -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE:PATH=ReleaseLibs
+               -Dgtest_force_shared_crt=ON
+    # Disable install step
+    INSTALL_COMMAND ""
+    # Wrap download, configure and build steps in a script to log output
+    LOG_DOWNLOAD ON
+    LOG_CONFIGURE ON
+    LOG_BUILD ON)
+  set(GOOGLE_MOCK_RELATIVE google_mock CACHE PATH "relative path to the google mock source (directory containing CMakeLists.txt)")
+
+ExternalProject_Get_Property(gmock source_dir)
+include_directories(${source_dir}/include)
+include_directories(${source_dir}/gtest/include)
+ExternalProject_Get_Property(gmock binary_dir)
+find_library(NAMES gmock_main PATHS ${binary_dir})
+  ENABLE_TESTING()
+
+
 find_package(OpenCV REQUIRED)
 include_directories("${PROJECT_SOURCE_DIR}")
 #include_directories("${OpenCV_INCLUDE_DIR}")
+
+
 
 
 set(EXECUTABLE_NAME "se")
@@ -14,15 +46,6 @@ add_executable(${EXECUTABLE_NAME} ScrabbleEye.cpp)
 #add_executable(${EXECUTABLE_NAME} ScrabbleEye.cpp Constants.cpp) 
 
 target_link_libraries(${EXECUTABLE_NAME} ${OpenCV_LIBS})
-
-##############
-# Google Test
-##############
-  ENABLE_TESTING()
-  set(GOOGLE_MOCK_RELATIVE google_mock)
-  add_subdirectory(${GOOGLE_MOCK_RELATIVE})
-  include_directories(${PROJECT_SOURCE_DIR}/${GOOGLE_MOCK_RELATIVE}/include)
-  include_directories(${PROJECT_SOURCE_DIR}/${GOOGLE_MOCK_RELATIVE}/gtest/include)
 
 #########
 # Utils
@@ -75,7 +98,11 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/res DESTINATION ${CMAKE_INSTALL_PREFIX})
     )
  
   foreach(testname ${TESTNAMES})
+          ExternalProject_Get_Property(gmock binary_dir)
+          link_directories(${binary_dir})
           add_executable(tests/${testname}.test tests/${testname}_test.cpp)
+          add_dependencies(tests/${testname}.test gmock)
+          
           target_link_libraries(tests/${testname}.test utils ${OpenCV_LIBS} gmock_main)
           add_test(${testname} tests/${testname}.test)
   endforeach(testname)
