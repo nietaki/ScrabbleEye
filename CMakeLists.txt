@@ -24,22 +24,20 @@ ExternalProject_Add(
     LOG_DOWNLOAD ON
     LOG_CONFIGURE ON
     LOG_BUILD ON)
-  set(GOOGLE_MOCK_RELATIVE google_mock CACHE PATH "relative path to the google mock source (directory containing CMakeLists.txt)")
+#set(GOOGLE_MOCK_RELATIVE google_mock CACHE PATH "relative path to the google mock source (directory containing CMakeLists.txt)")
 
 ExternalProject_Get_Property(gmock source_dir)
 include_directories(${source_dir}/include)
 include_directories(${source_dir}/gtest/include)
-ExternalProject_Get_Property(gmock binary_dir)
-find_library(NAMES gmock_main PATHS ${binary_dir})
-  ENABLE_TESTING()
+ENABLE_TESTING()
 
+##############
+# OpenCV 
+##############
 
 find_package(OpenCV REQUIRED)
 include_directories("${PROJECT_SOURCE_DIR}")
 #include_directories("${OpenCV_INCLUDE_DIR}")
-
-
-
 
 set(EXECUTABLE_NAME "se")
 add_executable(${EXECUTABLE_NAME} ScrabbleEye.cpp) 
@@ -97,12 +95,11 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/res DESTINATION ${CMAKE_INSTALL_PREFIX})
     #sth_else
     )
  
+  ExternalProject_Get_Property(gmock binary_dir)
+  link_directories(${binary_dir})
   foreach(testname ${TESTNAMES})
-          ExternalProject_Get_Property(gmock binary_dir)
-          link_directories(${binary_dir})
           add_executable(tests/${testname}.test tests/${testname}_test.cpp)
           add_dependencies(tests/${testname}.test gmock)
-          
           target_link_libraries(tests/${testname}.test utils ${OpenCV_LIBS} gmock_main)
           add_test(${testname} tests/${testname}.test)
   endforeach(testname)

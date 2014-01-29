@@ -1,8 +1,14 @@
-(this project is suspended. It might be rewritten to Scala and continued in summer 2013)
-
 # ScrabbleEye #
 
 an automatic computer-vision powered referee for your game of SCRABBLE
+
+
+# How to build #
+
+Essentially go the standard CMake route. You will have to compile the OpenCV libraries beforehand, also using CMake. After performing the first "Configure" in cmake-gui, most likely the OpenCV libraries will not get found. You will need to find the OpenCV_DIR variable and set it to the path to the OpenCV **build** directory. Google Test and Google Mock should be downloaded and built automatically.
+
+Make sure you build OpenCV correctly, especially the "WITH" section. We need WITH_GTK and without CUDA and OpenCL for less setup headache.
+
 
 ## Action plan ##
 
