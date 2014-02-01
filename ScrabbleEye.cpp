@@ -42,9 +42,7 @@ using namespace se;
 
 void help()
 {
-  cout << "\nThis program demonstrates line finding with the Hough transform.\n"
-          "Usage:\n"
-          "./houghlines <image_name>, Default is pic1.jpg\n" << endl;
+  cout << "help message" << endl;
 }
 
 int main(int argc, char** argv)

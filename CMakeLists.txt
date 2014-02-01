@@ -103,3 +103,5 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/res DESTINATION ${CMAKE_INSTALL_PREFIX})
           target_link_libraries(tests/${testname}.test utils ${OpenCV_LIBS} gmock_main)
           add_test(${testname} tests/${testname}.test)
   endforeach(testname)
+
+add_subdirectory(tools)
