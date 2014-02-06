@@ -21,6 +21,7 @@ namespace se {
     static int stringToInt(std::string s);
     static std::string intToString(int s);
     static std::string readFile(std::string path);
+    static vector<Scalar> getColors(int count);
   };
   
   template <class T>

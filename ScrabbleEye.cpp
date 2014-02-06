@@ -78,16 +78,9 @@ int main(int argc, char** argv)
   cvtColor(triplesOneChannel, wipColorCoded, CV_GRAY2BGR);
   
   //HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10 );
-  vector<Scalar> colors;
-  colors.push_back(Scalar(255,0,0));
-  colors.push_back(Scalar(255,255,0));
-  colors.push_back(Scalar(0,255,0));
-  colors.push_back(Scalar(0,255,255));
-  colors.push_back(Scalar(0,0,255));
-  colors.push_back(Scalar(255,0,255));
-  colors.push_back(Scalar(200,100,200));
-  colors.push_back(Scalar(50,100,50));
+
   
+  vector<Scalar> colors = Utils::getColors(8);
   
   for(size_t i = 0; i < pointLabels.size() ; i++ )
   {
@@ -266,7 +259,7 @@ int main(int argc, char** argv)
   Mat camera_matrix, distortion_coefficients;
   fs2["camera_matrix"] >> camera_matrix;
   fs2["distortion_coefficients"] >> distortion_coefficients;
-  double square_size = (double)fs2["square_size"];
+  double square_size = (double)fs2["square_size"]; //TODO: WTF is that?
   
   Mat rvec, tvec;
   vector<Point3f> objectPoints;

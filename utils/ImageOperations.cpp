@@ -85,7 +85,6 @@ void ImageOperations::clusterTriples(InputArray inputArray, OutputArray labels, 
   int cluster_count = 8;
   int attempts = 15;
   
-  
   //the count of non-zero/marked points
   int marked_count = 0;
   Mat input = inputArray.getMat();

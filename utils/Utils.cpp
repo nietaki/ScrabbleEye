@@ -2,6 +2,7 @@
 #include <fstream>
 #include <streambuf>
 #include <iostream>
+#include <cassert>
 
 #include "Utils.hpp"
 #include "constants.hpp"
@@ -14,6 +15,28 @@ namespace se {
 
   Utils::~Utils() {
   }
+  
+  /**
+   * @brief returns a vector of OpenCV colors of size "count"
+   * 
+   * this should be useful for coloring collections of stuff
+   */
+  vector<Scalar> Utils::getColors(int count)
+  {
+    assert(count <= 8);
+    vector<Scalar> colors;
+    colors.push_back(Scalar(255,0,0));
+    colors.push_back(Scalar(255,255,0));
+    colors.push_back(Scalar(0,255,0));
+    colors.push_back(Scalar(0,255,255));
+    colors.push_back(Scalar(0,0,255));
+    colors.push_back(Scalar(255,0,255));
+    colors.push_back(Scalar(200,100,200));
+    colors.push_back(Scalar(50,100,50));
+    colors.resize(count);
+    return colors;
+  }
+
 
   // TODO conversion errors 
   int Utils::stringToInt(std::string s) {
