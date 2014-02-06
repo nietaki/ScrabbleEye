@@ -19,6 +19,8 @@
 */
 
 #include <vector>
+#include <cassert>
+#include <iostream>
 
 #include "constants.hpp"
 #include "ImageOperations.hpp"
@@ -29,6 +31,12 @@ using namespace se;
 
 namespace se {
 
+/**
+ * @brief accepts an image as input, outputs a one channel output Matrix with the triple score fields marked as non-zero
+ * 
+ * @param boardImageArray the color input image Array
+ * @param triplesOneChannelArray the output one channel array with only the triple score fields having non-zero values
+ */
 void ImageOperations::extractTriples(InputArray boardImageArray, OutputArray triplesOneChannelArray)
 {
   Mat boardImage = boardImageArray.getMat();
@@ -64,47 +72,45 @@ void ImageOperations::extractTriples(InputArray boardImageArray, OutputArray tri
   output.copyTo(triplesOneChannelArray);
 }
   
-void ImageOperations::clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedArray, OutputArray centersArray ) 
+/**
+ * @brief performs the triple score fields clustering - clusters them into 8 clusters.
+ * @param matArray input one channel array
+ * @param labels
+ * @param markedArray a collection of points clustered, used for input of the kmeans
+ * @param centersArray a 2x8 float array of (x,y) cluster center coordinates
+ */
+void ImageOperations::clusterTriples(InputArray inputArray, OutputArray labels, OutputArray markedArray, OutputArray centersArray ) 
 {
+  //kmeans only accepts float data, that's what all the conversion is for
   int cluster_count = 8;
   int attempts = 15;
+  
+  
+  //the count of non-zero/marked points
   int marked_count = 0;
+  Mat input = inputArray.getMat();
   
-  Mat mat = matArray.getMat();
-  
-  vector<vector<float> > markedVec;
-  for(int i = 0; i < mat.rows; i++)
+  Mat marked(Size(2, 0), CV_32FC1);
+  Mat tmpMat(Size(2, 1), CV_32FC1);
+  for(int i = 0; i < input.rows; i++)
   {
-    const unsigned char* Mi = mat.ptr<unsigned char>(i);
-    for(int j = 0; j < mat.cols; j++)
+    const unsigned char* Mi = input.ptr<unsigned char>(i);
+    for(int j = 0; j < input.cols; j++)
     {
       if(Mi[j] > 0)
       {
         marked_count++;
-        
-        vector<float> tmp;
-        
-        tmp.push_back((float)j);
-        tmp.push_back((float)i);
-        markedVec.push_back(tmp);
+        tmpMat.at<float>(0, 0) = (float)j;
+        tmpMat.at<float>(0, 1) = (float)i;
+        marked.push_back(tmpMat);
       }
     }
   }
+  marked.copyTo(markedArray);
+  
   centersArray.create(Size(2, cluster_count), CV_32FC1);
   Mat centers = centersArray.getMat();
   
-  markedArray.create(Size(2, marked_count), CV_32FC1);
-  Mat marked = markedArray.getMat();
-
-  for(int i=0; i < marked.rows; i++)
-  {
-    for(int j=0; j < marked.cols; j++)
-    {
-      marked.at<float>(i,j) = markedVec[i][j];
-    }
-  }
-  
-
   labels.create(Size(marked_count, 1), CV_32SC1);
   TermCriteria criteria;
   double compactness = kmeans(marked, cluster_count, labels, criteria, attempts, KMEANS_PP_CENTERS, centers);

@@ -31,7 +31,6 @@ namespace se {
 class ImageOperations
 {
   public:
-    
     static void extractTriples(InputArray boardImageArray, OutputArray triplesOneChannelArray);
     static void clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedArray, OutputArray centersArray);
     

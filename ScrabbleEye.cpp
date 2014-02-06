@@ -54,22 +54,28 @@ int main(int argc, char** argv)
   Mat blurredBoardImage;
   GaussianBlur(boardImage, blurredBoardImage, Size(GAUSSIAN_SIZE, GAUSSIAN_SIZE), GAUSSIAN_SIGMA, GAUSSIAN_SIGMA);
   displayImage(blurredBoardImage, "gausser");
+  
   Mat triplesOneChannel;
   ImageOperations::extractTriples(blurredBoardImage, triplesOneChannel);
+  Mat onlyRed;
+  bitwise_and(blurredBoardImage, blurredBoardImage, onlyRed, triplesOneChannel);
+  displayImage(onlyRed, "onlyRed");
   displayImage(triplesOneChannel, "extracted_triples");
   
-  Mat srcBgr;
+  //erode(triplesOneChannel, triplesOneChannel, getStructuringElement(MORPH_ELLIPSE, Size(5,5)));
+  //dilate(triplesOneChannel, triplesOneChannel, getStructuringElement(MORPH_ELLIPSE, Size(9,9)));
+  //displayImage(triplesOneChannel, "extracted_triples_eroded");
+  Mat wipColorCoded;
   
   Mat markedPoints;
   vector<int> pointLabels;
   Mat clusterCenters;
   
   ImageOperations::clusterTriples(triplesOneChannel, pointLabels, markedPoints, clusterCenters) ;
-  
   /**
   *** visualising the clusters
   **/
-  cvtColor(triplesOneChannel, srcBgr, CV_GRAY2BGR);
+  cvtColor(triplesOneChannel, wipColorCoded, CV_GRAY2BGR);
   
   //HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10 );
   vector<Scalar> colors;
@@ -82,17 +88,18 @@ int main(int argc, char** argv)
   colors.push_back(Scalar(200,100,200));
   colors.push_back(Scalar(50,100,50));
   
+  
   for(size_t i = 0; i < pointLabels.size() ; i++ )
   {
     Point_<float> currentPoint(markedPoints.at<float>(i, 0), markedPoints.at<float>(i, 1));
     Point currentIntPoint = currentPoint;
-    circle(srcBgr, currentIntPoint, 1, colors[pointLabels[i]]);
+    circle(wipColorCoded, currentIntPoint, 1, colors[pointLabels[i]]);
   }
   
   vector<Point> centerPoints = centerMatrixToPointVector(clusterCenters);
   for(vector<Point>::iterator it = centerPoints.begin(); it != centerPoints.end(); it++)
   {
-    circle(srcBgr, *it, 9, CV_RGB(200,200,200), 3);
+    circle(wipColorCoded, *it, 9, CV_RGB(200,200,200), 3);
   }
 
   /**
@@ -111,7 +118,7 @@ int main(int argc, char** argv)
     else
     {
       cout  << currentIntPoint.x << "," << currentIntPoint.y << ": " 
-    << (int)triplesOneChannel.at<unsigned char>(currentIntPoint) << endl;
+        << (int)triplesOneChannel.at<unsigned char>(currentIntPoint) << endl;
       //circle(src, currentIntPoint, 9, CV_RGB(255,150,150), 3);
     }
   }
@@ -138,6 +145,11 @@ int main(int argc, char** argv)
   
   // << endl;
   //finding the label that doesn't stick closely to the cluster centre
+  
+  /**
+   * bottomLabel is the number of the cluster that at the bottom of the board,
+   * by the "scrabble" text
+   */
   int bottomLabel = -1;
   int maxMisplacedPixels = 0;
   for(size_t i = 0; i < clusterCenters.rows; i++)
@@ -153,7 +165,9 @@ int main(int argc, char** argv)
   // the close enough can be calculated relatively to the dinstance between the two clusters
   
   //TODO: move this down and erase all the non-corner fields?
-  //erasing the most sparse cluster
+  /**
+   * erasing the most sparse cluster
+   */
   for(size_t i = 0; i < pointLabels.size() ; i++ )
   {
     if(pointLabels[i] == bottomLabel)
@@ -187,6 +201,9 @@ int main(int argc, char** argv)
   }
   untouchedClusterLabels.erase(bottomLabel);
   
+  /**
+   * the segments are connecting points belonging to different clusters
+   */
   Point curPoint, lastPoint;
   int pointNo = 0;
   for(vector<int>::iterator it = hullPointIndices.begin(); it != hullPointIndices.end(); it++) {
@@ -199,13 +216,13 @@ int main(int argc, char** argv)
     untouchedClusterLabels.erase(getLabelByMark(triplesOneChannel.at<unsigned char>(curPoint)));
     //src.at<unsigned char>(edgePoint.y, edgePoint.y) = 255;
     //src.at<unsigned char>(edgePoint) = 255;
-    circle(srcBgr, curPoint, 5, Scalar(255,255,255), 3);
+    circle(wipColorCoded, curPoint, 5, Scalar(255,255,255), 3);
     if(it == hullPointIndices.begin())
       continue;
     
     if(triplesOneChannel.at<unsigned char>(lastPoint) != triplesOneChannel.at<unsigned char>(curPoint)){
       segments.push_back(Segment(lastPoint, curPoint));
-      line(srcBgr, lastPoint, curPoint, Scalar(255,255,255), 2);
+      line(wipColorCoded, lastPoint, curPoint, Scalar(255,255,255), 2);
     }
     
     pointNo++;
@@ -213,7 +230,7 @@ int main(int argc, char** argv)
   
   segments = rotate(segments, findClosestSegment(segments, centerPoints[bottomLabel]));
   
-  line(srcBgr, segments.front().first, segments.front().second, CV_RGB(255, 0,0), 3);
+  line(wipColorCoded, segments.front().first, segments.front().second, CV_RGB(255, 0,0), 3);
  
   cout << "number of clusters not touching the convex hull: " << untouchedClusterLabels.size() << endl;
   
@@ -234,13 +251,13 @@ int main(int argc, char** argv)
     assert(++it != segmentsToManipulate.end());
   }
   
-  paintSegments(srcBgr, segments, CV_RGB(0,150,0), 3);
+  paintSegments(wipColorCoded, segments, CV_RGB(0,150,0), 3);
   vector<Point2d> corners = Line::getCorners(segments);
   
   for(vector<Point2d>::iterator it = corners.begin(); it != corners.end(); it++)
   {
     Point tmp = *it;
-    circle(srcBgr, tmp, 12, CV_RGB(0,0,250), 6);
+    circle(wipColorCoded, tmp, 12, CV_RGB(0,0,250), 6);
   }
   //concatenateSegment(vector<Segment>& segments, Segment firstSegment);
   
@@ -282,7 +299,7 @@ int main(int argc, char** argv)
   {
     Point tmp = *it;
     elevatedIntPoints.push_back(tmp);
-    circle(srcBgr, tmp, 12, CV_RGB(255,150,150), 6);
+    circle(wipColorCoded, tmp, 12, CV_RGB(255,150,150), 6);
     putText(triplesOneChannel,Utils::intToString(i) , tmp, 0, 5, CV_RGB(255,255,255));
     i++;
   }
@@ -300,7 +317,7 @@ int main(int argc, char** argv)
   Mat homography = findHomography(elevatedImagePoints, dstPoints);
   
   Size outputSize(dstWidth, dstWidth);
-  Mat dst(outputSize, srcBgr.type());
+  Mat dst(outputSize, wipColorCoded.type());
   warpPerspective(piecesImage, dst, homography, outputSize);
   
   Scalar gridColor = CV_RGB(100,50,0);
@@ -312,7 +329,8 @@ int main(int argc, char** argv)
     line(dst, Point(pos, 0), Point(pos, BOARD_SIZE * TILE_PIXEL_WIDTH), gridColor, gridThickness);
   }
   
-  displayImage(srcBgr, "clusters");
+  displayImage(wipColorCoded, "clusters");
+  
   displayImage(triplesOneChannel,"flooded_edges");
   displayImage(dst,"output");
   
