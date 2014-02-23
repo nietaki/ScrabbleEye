@@ -47,6 +47,6 @@ namespace se {
 
   void paintSegments(Mat canvas, vector<Segment> lines, Scalar color, int thickness);
   
-  void displayImage(Mat image, const char* windowName);
+  void displayImage(Mat image, const char* windowName, bool reallyDisplay = true);
 }
 #endif /* UTILS_HPP_ */
