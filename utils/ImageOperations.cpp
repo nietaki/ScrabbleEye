@@ -115,4 +115,42 @@ void ImageOperations::clusterTriples(InputArray inputArray, OutputArray labels, 
   double compactness = kmeans(marked, cluster_count, labels, criteria, attempts, KMEANS_PP_CENTERS, centers);
 }  
 
+void ImageOperations::fixclusterCentres(InputArray image, vector<Point2i>& centers)
+{
+  assert(image.channels() == 1);
+  assert(image.depth() == CV_8U);
+  Mat imageMat = image.getMat();
+  
+  for(int idx = 0; idx < centers.size(); idx++) {
+    cout << centers[idx] << endl;
+    fixSingleClusterCenter(imageMat, centers[idx]);
+  }
+}
+
+void ImageOperations::fixSingleClusterCenter(Mat image, Point2i& center) {
+  if(image.at<unsigned char>(center) != 0) {
+    //already good
+    //std::cout << "already good" << std::endl;
+    return;
+  }
+  
+  for(int stride = 2; stride < 100; stride += 2) {
+    //layer after layer - first square size is 3, moving by 2
+    center.x -= 1; center.y -= 1;
+    Point2i dirs[4] = {Point2i(1, 0), Point2i(0, 1), Point2i(-1, 0), Point2i(0, -1)};
+    for(Point2i& dir : dirs) {
+      //each side
+      for(int it = 0; it < stride; it++) {
+        //each point on each side
+        center.x += dir.x; center.y += dir.y;
+        //std::cout << image.at<int>(center) << std::endl;
+        if(image.at<unsigned char>(center) != 0){
+          return;
+        }
+      }
+    }
+  }
+  assert(false);
+}
+
 }

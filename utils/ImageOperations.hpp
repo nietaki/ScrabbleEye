@@ -21,6 +21,7 @@
 #ifndef IMAGEOPERATIONS_HPP
 #define IMAGEOPERATIONS_HPP
 
+#include <vector>
 #include "opencv2/opencv.hpp"
 
 using namespace cv;
@@ -33,7 +34,9 @@ class ImageOperations
   public:
     static void extractTriples(InputArray boardImageArray, OutputArray triplesOneChannelArray);
     static void clusterTriples(InputArray matArray, OutputArray labels, OutputArray markedArray, OutputArray centersArray);
-    
+    static void fixclusterCentres(const InputArray image, vector<Point2i>& centers);
+private:
+  static void fixSingleClusterCenter(Mat image, Point2i& center);
 };
 
 };

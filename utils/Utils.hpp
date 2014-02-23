@@ -32,7 +32,7 @@ namespace se {
     ret.insert(ret.end(), rotatedVector.begin(), newBeginning);
     return ret;
   }
-
+  
   vector<Segment>::iterator findClosestSegment(vector<Segment>& segments, Point point);
 
   void concatenateSegment(vector<Segment>& segments, Segment firstSegment);

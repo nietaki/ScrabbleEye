@@ -51,45 +51,43 @@ int main(int argc, char** argv)
   Mat boardImage = imread(BOARD_FILENAME);
   Mat piecesImage = imread(PIECES_FILENAME);
     
-  Mat blurredBoardImage;
+  Mat blurredBoardImage, triplesOneChannel, erodedTriplesOneChannel, dilatedTriplesOneChannel, onlyRed;
   GaussianBlur(boardImage, blurredBoardImage, Size(GAUSSIAN_SIZE, GAUSSIAN_SIZE), GAUSSIAN_SIGMA, GAUSSIAN_SIGMA);
   displayImage(blurredBoardImage, "gausser");
   
-  Mat triplesOneChannel;
   ImageOperations::extractTriples(blurredBoardImage, triplesOneChannel);
-  Mat onlyRed;
+  
   bitwise_and(blurredBoardImage, blurredBoardImage, onlyRed, triplesOneChannel);
   displayImage(onlyRed, "onlyRed");
   displayImage(triplesOneChannel, "extracted_triples");
   
-  //erode(triplesOneChannel, triplesOneChannel, getStructuringElement(MORPH_ELLIPSE, Size(5,5)));
-  //dilate(triplesOneChannel, triplesOneChannel, getStructuringElement(MORPH_ELLIPSE, Size(9,9)));
-  //displayImage(triplesOneChannel, "extracted_triples_eroded");
-  Mat wipColorCoded;
+  //TODO: erode to get rid of tiny spots, afterwards dilate to get back to the original size (or a little further)
+  erode(triplesOneChannel, erodedTriplesOneChannel, getStructuringElement(MORPH_ELLIPSE, Size(5,5)));
+  //dilate(erodedTriplesOneChannel, dilatedTriplesOneChannel, getStructuringElement(MORPH_ELLIPSE, Size(9,9)));
+  //displayImage(erodedTriplesOneChannel, "extracted_triples_eroded");//TODO
   
-  Mat markedPoints;
-  vector<int> pointLabels;
-  Mat clusterCenters;
+  Mat wipColorCoded, nonZeroPointCoordinates, clusterCenters;
+  vector<int> nonZeroPointLabels;
   
-  ImageOperations::clusterTriples(triplesOneChannel, pointLabels, markedPoints, clusterCenters) ;
+  ImageOperations::clusterTriples(erodedTriplesOneChannel, nonZeroPointLabels, nonZeroPointCoordinates, clusterCenters);
+  
+  vector<Point2i> centerPoints = centerMatrixToPointVector(clusterCenters);
+  
+  
+  //TODO: test if this works correctly - possibly create a function that goes through all this and throws exceptions when there 
+  // are problems with interpretation at one point or another. 
+  ImageOperations::fixclusterCentres(erodedTriplesOneChannel, centerPoints);
+  
   /**
   *** visualising the clusters
   **/
-  cvtColor(triplesOneChannel, wipColorCoded, CV_GRAY2BGR);
-  
-  //HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10 );
-
-  
+  cvtColor(erodedTriplesOneChannel, wipColorCoded, CV_GRAY2BGR);
   vector<Scalar> colors = Utils::getColors(8);
-  
-  for(size_t i = 0; i < pointLabels.size() ; i++ )
-  {
-    Point_<float> currentPoint(markedPoints.at<float>(i, 0), markedPoints.at<float>(i, 1));
+  for(size_t i = 0; i < nonZeroPointLabels.size(); i++) {
+    Point_<float> currentPoint(nonZeroPointCoordinates.at<float>(i, 0), nonZeroPointCoordinates.at<float>(i, 1));
     Point currentIntPoint = currentPoint;
-    circle(wipColorCoded, currentIntPoint, 1, colors[pointLabels[i]]);
+    circle(wipColorCoded, currentIntPoint, 1, colors[nonZeroPointLabels[i]]); //this is actually just a dot
   }
-  
-  vector<Point> centerPoints = centerMatrixToPointVector(clusterCenters);
   for(vector<Point>::iterator it = centerPoints.begin(); it != centerPoints.end(); it++)
   {
     circle(wipColorCoded, *it, 9, CV_RGB(200,200,200), 3);
@@ -98,20 +96,19 @@ int main(int argc, char** argv)
   /**
   *** flood-filling the clusters
   **/
-  //TODO: make sure it works correctly even if the center is on the black text
   for(int i = 0; i < centerPoints.size() ; i++)
   {
     Point currentIntPoint = centerPoints[i];
-    if(triplesOneChannel.at<unsigned char>(currentIntPoint) == 255)
+    if(erodedTriplesOneChannel.at<unsigned char>(currentIntPoint) == 255)
     {
       //cout << "color: " << floodedMark + (unsigned char) i << endl;
       //different colors denote different clusters
-      floodFill(triplesOneChannel, currentIntPoint, getFloodMark(i));
+      floodFill(erodedTriplesOneChannel, currentIntPoint, getFloodMark(i));
     }
     else
     {
       cout  << currentIntPoint.x << "," << currentIntPoint.y << ": " 
-        << (int)triplesOneChannel.at<unsigned char>(currentIntPoint) << endl;
+        << (int)erodedTriplesOneChannel.at<unsigned char>(currentIntPoint) << endl;
       //circle(src, currentIntPoint, 9, CV_RGB(255,150,150), 3);
     }
   }
@@ -125,18 +122,17 @@ int main(int argc, char** argv)
   vector<int> misplacedPixelCounts(clusterCenters.rows);
   
   //flooding all the spots that contain a cluster center
-  for(size_t i = 0; i < pointLabels.size() ; i++ )
+  for(size_t i = 0; i < nonZeroPointLabels.size() ; i++ )
   {
-    Point_<float> currentPoint(markedPoints.at<float>(i, 0), markedPoints.at<float>(i, 1));
+    Point_<float> currentPoint(nonZeroPointCoordinates.at<float>(i, 0), nonZeroPointCoordinates.at<float>(i, 1));
     Point currentIntPoint = currentPoint;
-    if(triplesOneChannel.at<unsigned char>(currentIntPoint) == 255)
+    if(erodedTriplesOneChannel.at<unsigned char>(currentIntPoint) == 255)
     {
-      misplacedPixelCounts[pointLabels[i]]++;
-      triplesOneChannel.at<unsigned char>(currentIntPoint) = 0;
+      misplacedPixelCounts[nonZeroPointLabels[i]]++;
+      erodedTriplesOneChannel.at<unsigned char>(currentIntPoint) = 0;
     }
   }
   
-  // << endl;
   //finding the label that doesn't stick closely to the cluster centre
   
   /**
@@ -161,13 +157,13 @@ int main(int argc, char** argv)
   /**
    * erasing the most sparse cluster
    */
-  for(size_t i = 0; i < pointLabels.size() ; i++ )
+  for(size_t i = 0; i < nonZeroPointLabels.size() ; i++ )
   {
-    if(pointLabels[i] == bottomLabel)
+    if(nonZeroPointLabels[i] == bottomLabel)
     {
-      Point_<float> currentPoint(markedPoints.at<float>(i, 0), markedPoints.at<float>(i, 1));
+      Point_<float> currentPoint(nonZeroPointCoordinates.at<float>(i, 0), nonZeroPointCoordinates.at<float>(i, 1));
       Point currentIntPoint = currentPoint;
-      triplesOneChannel.at<unsigned char>(currentIntPoint) = 0;
+      erodedTriplesOneChannel.at<unsigned char>(currentIntPoint) = 0;
     }
   }
   
@@ -175,7 +171,7 @@ int main(int argc, char** argv)
   *** getting the edge points
   **/
   vector<Point> nonZeroPoints;
-  nonZeroPoints = getNonZeroPoints(triplesOneChannel);
+  nonZeroPoints = getNonZeroPoints(erodedTriplesOneChannel);
   vector<int> hullPointIndices;
   vector<Segment> segments;
   
@@ -206,14 +202,14 @@ int main(int argc, char** argv)
     
     //putText(srcBgr, Utils::intToString(pointNo) , curPoint, 0, 5, CV_RGB(255,255,255));
     
-    untouchedClusterLabels.erase(getLabelByMark(triplesOneChannel.at<unsigned char>(curPoint)));
+    untouchedClusterLabels.erase(getLabelByMark(erodedTriplesOneChannel.at<unsigned char>(curPoint)));
     //src.at<unsigned char>(edgePoint.y, edgePoint.y) = 255;
     //src.at<unsigned char>(edgePoint) = 255;
     circle(wipColorCoded, curPoint, 5, Scalar(255,255,255), 3);
     if(it == hullPointIndices.begin())
       continue;
     
-    if(triplesOneChannel.at<unsigned char>(lastPoint) != triplesOneChannel.at<unsigned char>(curPoint)){
+    if(erodedTriplesOneChannel.at<unsigned char>(lastPoint) != erodedTriplesOneChannel.at<unsigned char>(curPoint)){
       segments.push_back(Segment(lastPoint, curPoint));
       line(wipColorCoded, lastPoint, curPoint, Scalar(255,255,255), 2);
     }
@@ -293,7 +289,7 @@ int main(int argc, char** argv)
     Point tmp = *it;
     elevatedIntPoints.push_back(tmp);
     circle(wipColorCoded, tmp, 12, CV_RGB(255,150,150), 6);
-    putText(triplesOneChannel,Utils::intToString(i) , tmp, 0, 5, CV_RGB(255,255,255));
+    putText(erodedTriplesOneChannel,Utils::intToString(i) , tmp, 0, 5, CV_RGB(255,255,255));
     i++;
   }
   
@@ -324,7 +320,7 @@ int main(int argc, char** argv)
   
   displayImage(wipColorCoded, "clusters");
   
-  displayImage(triplesOneChannel,"flooded_edges");
+  displayImage(erodedTriplesOneChannel,"flooded_edges");
   displayImage(dst,"output");
   
   waitKey();
