@@ -51,7 +51,8 @@ int main(int argc, char** argv)
 
   Mat boardImage = imread(BOARD_FILENAME);
   Mat piecesImage = imread(PIECES_FILENAME);
-
+  
+  // finding corners
   CornerFinder cf;
   cf.setDebug(true).setPopups(true);
   vector<Point2d> corners = cf.getCorners(boardImage);

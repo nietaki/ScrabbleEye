@@ -30,18 +30,13 @@ using namespace cv;
 
 namespace se {
   
-CornerFinder::CornerFinder():popups(false),debug(true)
-{
+CornerFinder::CornerFinder():popups(false),debug(true) { }
 
-}
-
-CornerFinder::~CornerFinder()
-{
-
-}
+CornerFinder::~CornerFinder() { }
 
 std::vector< Point2d > CornerFinder::getCorners(InputArray boardImage)
 {
+  CV_Assert(!boardImage.empty());
   Mat blurredBoardImage, triplesOneChannel, erodedTriplesOneChannel, dilatedTriplesOneChannel, onlyRed;
   GaussianBlur(boardImage, blurredBoardImage, Size(GAUSSIAN_SIZE, GAUSSIAN_SIZE), GAUSSIAN_SIGMA, GAUSSIAN_SIGMA);
   displayImage(blurredBoardImage, "gausser", popups);

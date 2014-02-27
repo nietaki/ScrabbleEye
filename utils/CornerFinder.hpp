@@ -22,6 +22,7 @@
 #define CORNERFINDER_H
 
 #include <vector>
+#include <string>
 #include "opencv2/opencv.hpp"
 namespace se {
 
@@ -32,11 +33,13 @@ public:
   ~CornerFinder();
   CornerFinder& setPopups(bool popups);
   CornerFinder& setDebug(bool debug);
+  CornerFinder& dumpIntermediate(std::string targetFilename);
   
   std::vector<cv::Point2d> getCorners(cv::InputArray boardImage);
 private:
   bool popups;
   bool debug;
+  std::string dumpFilename;
 };
 
 inline CornerFinder& CornerFinder::setDebug(bool debug)
@@ -51,5 +54,9 @@ inline CornerFinder& CornerFinder::setPopups(bool popups)
   return *this;
 }
 
+inline CornerFinder& CornerFinder::dumpIntermediate(std::string targetFilename) {
+  this->dumpFilename = targetFilename;
+  return *this;
+}
 }
 #endif // CORNERFINDER_H

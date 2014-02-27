@@ -103,6 +103,7 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/res DESTINATION ${CMAKE_INSTALL_PREFIX})
   set(TESTNAMES 
     sample
     lines
+    corner_finder
     #sth_else
     )
  
