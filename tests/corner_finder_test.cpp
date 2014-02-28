@@ -48,38 +48,46 @@ class CornerFinderTest : public testing::Test {
 
 
 TEST_F(CornerFinderTest, NightBoard) {
-  Mat inputBoard = imread("res/boards/1080/night/board.jpg");
-  ASSERT_FALSE(inputBoard.empty());
-  CornerFinder cf;
-  cf.setDebug(false).setPopups(false).setDumpImages(true);;
-  cf.setDumpBasename(this->baseDebugFilePath + "night_board");
-  
-  vector<Point2d> desiredCorners;
-  desiredCorners.push_back(Point2d(592, 246));
-  desiredCorners.push_back(Point2d(1393, 288));
-  desiredCorners.push_back(Point2d(1750, 1014));
-  desiredCorners.push_back(Point2d(403, 997));
-  
-  vector<Point2d> corners = cf.getCorners(inputBoard);
-  checkCornersSimilar(corners, desiredCorners);
-
+  ASSERT_NO_THROW({
+    Mat inputBoard = imread("res/boards/1080/night/board.jpg");
+    ASSERT_FALSE(inputBoard.empty());
+    CornerFinder cf;
+    cf.setDebug(false).setPopups(false).setDumpImages(true);;
+    cf.setDumpBasename(this->baseDebugFilePath + "night_board");
+    
+    vector<Point2d> desiredCorners;
+    desiredCorners.push_back(Point2d(592, 246));
+    desiredCorners.push_back(Point2d(1393, 288));
+    desiredCorners.push_back(Point2d(1750, 1014));
+    desiredCorners.push_back(Point2d(403, 997));
+    
+    vector<Point2d> corners = cf.getCorners(inputBoard);
+    checkCornersSimilar(corners, desiredCorners);
+  });
 }
 
 
-TEST_F(CornerFinderTest, DayBoard) {
-  Mat inputBoard = imread("res/boards/1080/board.jpg");
-  ASSERT_FALSE(inputBoard.empty());
-  CornerFinder cf;
-  cf.setDebug(false).setPopups(false);
-  
-  vector<Point2d> desiredCorners;
-  desiredCorners.push_back(Point2d(522, 44));
-  desiredCorners.push_back(Point2d(1402, 184));
-  desiredCorners.push_back(Point2d(1708, 1014));
-  desiredCorners.push_back(Point2d(208, 882));
-  
-  vector<Point2d> corners = cf.getCorners(inputBoard);
-  
-  checkCornersSimilar(corners, desiredCorners);
-}
 
+TEST_F(CornerFinderTest, Board1) {
+  try{
+    const char* boardNo = "1";
+    Mat inputBoard = imread(boards_path + boardNo + ".jpg");
+    ASSERT_FALSE(inputBoard.empty());
+    CornerFinder cf;
+    cf.setDebug(false).setPopups(false).setDumpImages(true);
+    cf.setDumpBasename(this->baseDebugFilePath + boardNo);
+    
+    //vector<Point2d> desiredCorners;
+    //desiredCorners.push_back(Point2d(592, 246));
+    //desiredCorners.push_back(Point2d(1393, 288));
+    //desiredCorners.push_back(Point2d(1750, 1014));
+    //desiredCorners.push_back(Point2d(403, 997));
+    
+    vector<Point2d> corners = cf.getCorners(inputBoard);
+    //checkCornersSimilar(corners, desiredCorners); 
+  } catch(const std::runtime_error& re) {
+    FAIL() << "runtime error: " << re.what();
+  } catch(...) {
+    FAIL() << "unknown exception";
+  }
+}

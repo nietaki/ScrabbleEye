@@ -21,6 +21,7 @@
 #include <vector>
 #include <cassert>
 #include <iostream>
+#include <exception>
 
 #include "constants.hpp"
 #include "ImageOperations.hpp"
@@ -53,9 +54,9 @@ void ImageOperations::extractTriples(InputArray boardImageArray, OutputArray tri
   split(boardImage, bgr_channels);
 
   int h_lower_tresh, h_upper_tresh, sat_tresh, val_tresh;
-  h_lower_tresh = 15;
-  h_upper_tresh = 180 - h_lower_tresh;
-  sat_tresh = 255 * 6 / 10;
+  h_lower_tresh = 7; // x degrees
+  h_upper_tresh = 179 - h_lower_tresh;
+  sat_tresh = 255 * 65 / 100; 
   val_tresh = 255 * 5 / 10;
   Mat h_lower, h_upper, sat, val, output;
   
@@ -83,7 +84,7 @@ void ImageOperations::clusterTriples(InputArray inputArray, OutputArray labels, 
 {
   //kmeans only accepts float data, that's what all the conversion is for
   int cluster_count = 8;
-  int attempts = 15;
+  int attempts = 5;
   
   //the count of non-zero/marked points
   int marked_count = 0;
@@ -111,7 +112,7 @@ void ImageOperations::clusterTriples(InputArray inputArray, OutputArray labels, 
   Mat centers = centersArray.getMat();
   
   labels.create(Size(marked_count, 1), CV_32SC1);
-  TermCriteria criteria;
+  TermCriteria criteria(TermCriteria::EPS, 133700, 5.0);
   double compactness = kmeans(marked, cluster_count, labels, criteria, attempts, KMEANS_PP_CENTERS, centers);
 }  
 
@@ -128,6 +129,7 @@ void ImageOperations::fixclusterCentres(InputArray image, vector<Point2i>& cente
 }
 
 void ImageOperations::fixSingleClusterCenter(Mat image, Point2i& center) {
+  Point2i copy = center;
   if(image.at<unsigned char>(center) != 0) {
     //already good
     //std::cout << "already good" << std::endl;
@@ -150,7 +152,7 @@ void ImageOperations::fixSingleClusterCenter(Mat image, Point2i& center) {
       }
     }
   }
-  assert(false);
+  throw std::runtime_error("couldn't fix cluster center");
 }
 
 }

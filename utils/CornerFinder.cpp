@@ -72,9 +72,9 @@ std::vector< Point2d > CornerFinder::getCorners(InputArray boardImage)
   vector<Point2i> centerPoints = centerMatrixToPointVector(clusterCenters);
   
   
+  
   //TODO: test if this works correctly - possibly create a function that goes through all this and throws exceptions when there 
   // are problems with interpretation at one point or another. 
-  ImageOperations::fixclusterCentres(preprocessedOneChannel, centerPoints);
   
   /**
   *** visualising the clusters
@@ -90,7 +90,10 @@ std::vector< Point2d > CornerFinder::getCorners(InputArray boardImage)
   {
     circle(wipColorCoded, *it, 9, CV_RGB(200,200,200), 3);
   }
+  
+  displayAndDump(wipColorCoded, std::string("unfixed_cluster_centers"));
 
+  ImageOperations::fixclusterCentres(preprocessedOneChannel, centerPoints);
   /**
   *** flood-filling the clusters
   **/
@@ -216,7 +219,7 @@ std::vector< Point2d > CornerFinder::getCorners(InputArray boardImage)
   }
   
   segments = rotate(segments, findClosestSegment(segments, centerPoints[bottomLabel]));
-  
+  cout << segments.front().first << " <--> " << segments.front().second;
   line(wipColorCoded, segments.front().first, segments.front().second, CV_RGB(255, 0,0), 3);
  
   cout << "number of clusters not touching the convex hull: " << untouchedClusterLabels.size() << endl;
