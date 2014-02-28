@@ -66,10 +66,6 @@ class CornerFinderTest : public testing::Test {
   }
 };
 
-// When you have a test fixture, you define a test using TEST_F
-// instead of TEST.
-
-
 TEST_F(CornerFinderTest, NightBoard) {
   ASSERT_NO_THROW({
     Mat inputBoard = imread("res/boards/1080/night/board.jpg");
@@ -109,3 +105,206 @@ TEST_F(CornerFinderTest, Board1) {
     //checkCornersSimilar(corners, desiredCorners); 
   });
 }
+
+TEST_F(CornerFinderTest, Board1Redux) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("1");
+  });
+}
+
+
+
+TEST_F(CornerFinderTest, Board2) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("2");
+  });
+}
+
+TEST_F(CornerFinderTest, Board3) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("3");
+  });
+}
+
+
+
+TEST_F(CornerFinderTest, Board4) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("4");
+  });
+}
+
+
+
+TEST_F(CornerFinderTest, Board5) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("5");
+  });
+}
+
+
+
+TEST_F(CornerFinderTest, Board6) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("6");
+  });
+}
+
+
+
+TEST_F(CornerFinderTest, Board7) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("7");
+  });
+}
+
+
+
+TEST_F(CornerFinderTest, Board8) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("8");
+  });
+}
+
+TEST_F(CornerFinderTest, Board9) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("9");
+  });
+}
+
+TEST_F(CornerFinderTest, Board10) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("10");
+  });
+}
+
+TEST_F(CornerFinderTest, Board11) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("11");
+  });
+}
+
+TEST_F(CornerFinderTest, Board12) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("12");
+  });
+}
+
+TEST_F(CornerFinderTest, Board13) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("13");
+  });
+}
+
+TEST_F(CornerFinderTest, Board14) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("14");
+  });
+}
+
+TEST_F(CornerFinderTest, Board15) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("15");
+  });
+}
+
+TEST_F(CornerFinderTest, Board16) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("16");
+  });
+}
+
+TEST_F(CornerFinderTest, Board17) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("17");
+  });
+}
+
+TEST_F(CornerFinderTest, Board18) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("18");
+  });
+}
+
+TEST_F(CornerFinderTest, Board19) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("19");
+  });
+}
+
+//  20  //
+TEST_F(CornerFinderTest, Board20) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("20");
+  });
+}
+
+TEST_F(CornerFinderTest, Board21) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("21");
+  });
+}
+
+TEST_F(CornerFinderTest, Board22) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("22");
+  });
+}
+
+TEST_F(CornerFinderTest, Board23) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("23");
+  });
+}
+
+TEST_F(CornerFinderTest, Board24) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("24");
+  });
+}
+
+TEST_F(CornerFinderTest, Board25) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("25");
+  });
+}
+
+TEST_F(CornerFinderTest, Board26) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("26");
+  });
+}
+
+TEST_F(CornerFinderTest, Board27) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("27");
+  });
+}
+
+TEST_F(CornerFinderTest, Board28) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("28");
+  });
+}
+
+TEST_F(CornerFinderTest, Board29) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("29");
+  });
+}
+
+//  30  //
+TEST_F(CornerFinderTest, Board30) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("30");
+  });
+}
+
+TEST_F(CornerFinderTest, Board31) {
+  CATCH_EXCEPTIONS({
+    performStandardBoardTest("31");
+  });
+}
+
+
+
