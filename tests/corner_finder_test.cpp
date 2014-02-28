@@ -16,9 +16,9 @@ using namespace se;
 
 class CornerFinderTest : public testing::Test {
   protected:
-    const std::string boards_path = "../res/boards/1080/empty_boards/";
+    const std::string boards_path = "res/boards/1080/empty_boards/";
     const float maxDistance = 30;
-
+    const std::string baseDebugFilePath = "debug_dumps/";
   // virtual void SetUp() will be called before each test is run.  You
   // should define it if you need to initialize the varaibles.
   // Otherwise, this can be skipped.
@@ -51,7 +51,8 @@ TEST_F(CornerFinderTest, NightBoard) {
   Mat inputBoard = imread("res/boards/1080/night/board.jpg");
   ASSERT_FALSE(inputBoard.empty());
   CornerFinder cf;
-  cf.setDebug(false).setPopups(false);
+  cf.setDebug(false).setPopups(false).setDumpImages(true);;
+  cf.setDumpBasename(this->baseDebugFilePath + "night_board");
   
   vector<Point2d> desiredCorners;
   desiredCorners.push_back(Point2d(592, 246));

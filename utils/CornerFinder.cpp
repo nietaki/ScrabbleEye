@@ -30,27 +30,37 @@ using namespace cv;
 
 namespace se {
   
-CornerFinder::CornerFinder():popups(false),debug(true) { }
+CornerFinder::CornerFinder():popups(false),debug(true),dump(false) { }
 
 CornerFinder::~CornerFinder() { }
+
+void CornerFinder::displayAndDump(Mat image, string name)
+{
+  if(popups) {
+    displayImage(image, name.c_str());
+  }
+  if(dump) {
+    imwrite(dumpBasename + name + ".png", image);
+  }
+}
+
 
 std::vector< Point2d > CornerFinder::getCorners(InputArray boardImage)
 {
   CV_Assert(!boardImage.empty());
   Mat blurredBoardImage, triplesOneChannel, erodedTriplesOneChannel, dilatedTriplesOneChannel, onlyRed;
   GaussianBlur(boardImage, blurredBoardImage, Size(GAUSSIAN_SIZE, GAUSSIAN_SIZE), GAUSSIAN_SIGMA, GAUSSIAN_SIGMA);
-  displayImage(blurredBoardImage, "gausser", popups);
+  displayAndDump(blurredBoardImage, "gausser");
   
   ImageOperations::extractTriples(blurredBoardImage, triplesOneChannel);
   
   bitwise_and(blurredBoardImage, blurredBoardImage, onlyRed, triplesOneChannel);
-  displayImage(onlyRed, "onlyRed", popups);
-  displayImage(triplesOneChannel, "extracted_triples", popups);
+  displayAndDump(onlyRed, "onlyRed");
+  displayAndDump(triplesOneChannel, "extracted_triples");
   
-  //TODO: erode to get rid of tiny spots, afterwards dilate to get back to the original size (or a little further)
   erode(triplesOneChannel, erodedTriplesOneChannel, getStructuringElement(MORPH_ELLIPSE, Size(5,5)));
   dilate(erodedTriplesOneChannel, dilatedTriplesOneChannel, getStructuringElement(MORPH_ELLIPSE, Size(7,7)));
-  //displayImage(erodedTriplesOneChannel, "extracted_triples_eroded", popups);//TODO
+  //displayAndDump(erodedTriplesOneChannel, "extracted_triples_eroded");//TODO
   
   Mat preprocessedOneChannel = dilatedTriplesOneChannel;
   
@@ -236,9 +246,9 @@ std::vector< Point2d > CornerFinder::getCorners(InputArray boardImage)
     circle(wipColorCoded, tmp, 12, CV_RGB(0,0,250), 6);
   }
   
-  displayImage(wipColorCoded, "clusters", popups);
+  displayAndDump(wipColorCoded, "clusters");
   
-  displayImage(preprocessedOneChannel,"flooded_edges", popups); 
+  displayAndDump(preprocessedOneChannel,"flooded_edges"); 
   return corners;
 }
 

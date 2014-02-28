@@ -90,7 +90,7 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/res DESTINATION ${CMAKE_INSTALL_PREFIX})
 ########
 
   file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/tests)
-  
+  execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/debug_dumps) #on compile time
   
   # if there is anythink we need for th tests, we put it in the "extras" directory 
   # depending on how we run the tests, it might be needed in different directories 

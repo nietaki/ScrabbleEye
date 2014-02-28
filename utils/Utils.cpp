@@ -146,13 +146,11 @@ namespace se {
     }
   }
   
-  void displayImage(Mat image, const char* windowName, bool reallyDisplay)
+  void displayImage(Mat image, const char* windowName)
   {
-    if(reallyDisplay) {
-      namedWindow(windowName, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
-      resizeWindow(windowName, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
-      imshow(windowName, image);
-    }
+    namedWindow(windowName, CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
+    resizeWindow(windowName, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+    imshow(windowName, image);
   }
 }
 

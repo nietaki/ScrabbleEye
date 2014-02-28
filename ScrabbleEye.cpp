@@ -54,7 +54,7 @@ int main(int argc, char** argv)
   
   // finding corners
   CornerFinder cf;
-  cf.setDebug(true).setPopups(true);
+  cf.setDebug(true).setPopups(true).setDumpBasename("se").setDumpImages(true);
   vector<Point2d> corners = cf.getCorners(boardImage);
   
   //concatenateSegment(vector<Segment>& segments, Segment firstSegment);

@@ -33,15 +33,23 @@ public:
   ~CornerFinder();
   CornerFinder& setPopups(bool popups);
   CornerFinder& setDebug(bool debug);
-  CornerFinder& dumpIntermediate(std::string targetFilename);
+  CornerFinder& setDumpImages(bool dump);
+  CornerFinder& setDumpBasename(std::string dumpBasename);
+  
   
   std::vector<cv::Point2d> getCorners(cv::InputArray boardImage);
 private:
   bool popups;
   bool debug;
-  std::string dumpFilename;
+  bool dump;
+  std::string dumpBasename;
+  void displayAndDump(cv::Mat image, std::string name);
 };
 
+inline CornerFinder& CornerFinder::setDumpImages(bool dump) {
+  this->dump = dump;
+  return *this;
+}
 inline CornerFinder& CornerFinder::setDebug(bool debug)
 {
   this->debug = debug;
@@ -54,8 +62,8 @@ inline CornerFinder& CornerFinder::setPopups(bool popups)
   return *this;
 }
 
-inline CornerFinder& CornerFinder::dumpIntermediate(std::string targetFilename) {
-  this->dumpFilename = targetFilename;
+inline CornerFinder& CornerFinder::setDumpBasename(std::string dumpBasename) {
+  this->dumpBasename = dumpBasename;
   return *this;
 }
 }
