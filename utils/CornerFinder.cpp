@@ -40,7 +40,7 @@ void CornerFinder::displayAndDump(Mat image, string name)
     displayImage(image, name.c_str());
   }
   if(dump) {
-    imwrite(dumpBasename + name + ".png", image);
+    imwrite(dumpBasename + "_" + name + ".png", image);
   }
 }
 

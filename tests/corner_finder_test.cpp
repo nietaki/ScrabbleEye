@@ -3,6 +3,13 @@
  *  might be helpful: http://code.google.com/p/googlemock/wiki/ForDummies
  *  http://code.google.com/p/googlemock/wiki/CheatSheet
  */
+#define CATCH_EXCEPTIONS( expr ) try{ expr } \
+catch(const std::runtime_error& re) { \
+  FAIL() << "runtime error: " << re.what(); \
+} catch(...) { \
+  FAIL() << "unknown exception"; \
+}
+
 
 #include <string>
 #include <vector>
@@ -41,6 +48,22 @@ class CornerFinderTest : public testing::Test {
       EXPECT_LE(norm(actual - desired), maxDistance) << "corner no " << i << " is too far away, is " << actual << " should be " << desired;
     }
   }
+  
+  /**
+   * reads the board from the directory, find the corners and compare to the expectedCorners (if passed)
+   */
+  void performStandardBoardTest(const char* boardName, vector<Point2d> expectedCorners = vector<Point2d>()) {
+    Mat inputBoard = imread(boards_path + boardName + ".jpg");
+    ASSERT_FALSE(inputBoard.empty());
+    CornerFinder cf;
+    cf.setDebug(false).setPopups(false).setDumpImages(true);
+    cf.setDumpBasename(this->baseDebugFilePath + boardName);
+    //vector<Point2d> desiredCorners;
+    vector<Point2d> corners = cf.getCorners(inputBoard);
+    if(!expectedCorners.empty()) {
+      checkCornersSimilar(corners, expectedCorners); 
+    }
+  }
 };
 
 // When you have a test fixture, you define a test using TEST_F
@@ -67,16 +90,15 @@ TEST_F(CornerFinderTest, NightBoard) {
 }
 
 
-
 TEST_F(CornerFinderTest, Board1) {
-  try{
+  CATCH_EXCEPTIONS({
     const char* boardNo = "1";
     Mat inputBoard = imread(boards_path + boardNo + ".jpg");
     ASSERT_FALSE(inputBoard.empty());
     CornerFinder cf;
     cf.setDebug(false).setPopups(false).setDumpImages(true);
     cf.setDumpBasename(this->baseDebugFilePath + boardNo);
-    
+    //FIXME
     //vector<Point2d> desiredCorners;
     //desiredCorners.push_back(Point2d(592, 246));
     //desiredCorners.push_back(Point2d(1393, 288));
@@ -85,9 +107,5 @@ TEST_F(CornerFinderTest, Board1) {
     
     vector<Point2d> corners = cf.getCorners(inputBoard);
     //checkCornersSimilar(corners, desiredCorners); 
-  } catch(const std::runtime_error& re) {
-    FAIL() << "runtime error: " << re.what();
-  } catch(...) {
-    FAIL() << "unknown exception";
-  }
+  });
 }
