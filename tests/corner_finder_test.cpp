@@ -6,6 +6,8 @@
 #define CATCH_EXCEPTIONS( expr ) try{ expr } \
 catch(const std::runtime_error& re) { \
   FAIL() << "runtime error: " << re.what(); \
+} catch(cv::Exception ce) { \
+  FAIL() << ce.what(); \
 } catch(...) { \
   FAIL() << "unknown exception"; \
 }
@@ -17,6 +19,7 @@ catch(const std::runtime_error& re) { \
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 #include "utils/CornerFinder.hpp"
+#include "utils/AssertionException.hpp"
 
 using namespace cv;
 using namespace se;
@@ -106,6 +109,13 @@ TEST_F(CornerFinderTest, Board1) {
   });
 }
 
+
+TEST_F(CornerFinderTest, AssertionErrorTest) {
+  ASSERT_THROW({
+    throw AssertionException("filename", 42, "1 == 0");
+  }, AssertionException);
+}
+  
 TEST_F(CornerFinderTest, Board1Redux) {
   CATCH_EXCEPTIONS({
     performStandardBoardTest("1");

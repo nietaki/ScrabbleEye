@@ -49,7 +49,8 @@ std::vector< Point2d > CornerFinder::getCorners(InputArray boardImage)
 {
   CV_Assert(!boardImage.empty());
   Mat blurredBoardImage, triplesOneChannel, erodedTriplesOneChannel, dilatedTriplesOneChannel, onlyRed;
-  GaussianBlur(boardImage, blurredBoardImage, Size(GAUSSIAN_SIZE, GAUSSIAN_SIZE), GAUSSIAN_SIGMA, GAUSSIAN_SIGMA);
+  //GaussianBlur(boardImage, blurredBoardImage, Size(GAUSSIAN_SIZE, GAUSSIAN_SIZE), GAUSSIAN_SIGMA, GAUSSIAN_SIGMA);
+  medianBlur(boardImage, blurredBoardImage, MEDIAN_SIZE);
   displayAndDump(blurredBoardImage, "gausser");
   
   ImageOperations::extractTriples(blurredBoardImage, triplesOneChannel);
@@ -58,8 +59,8 @@ std::vector< Point2d > CornerFinder::getCorners(InputArray boardImage)
   displayAndDump(onlyRed, "onlyRed");
   displayAndDump(triplesOneChannel, "extracted_triples");
   
-  erode(triplesOneChannel, erodedTriplesOneChannel, getStructuringElement(MORPH_ELLIPSE, Size(5,5)));
-  dilate(erodedTriplesOneChannel, dilatedTriplesOneChannel, getStructuringElement(MORPH_ELLIPSE, Size(7,7)));
+  erode(triplesOneChannel, erodedTriplesOneChannel, getStructuringElement(MORPH_ELLIPSE, Size(1,1)));
+  dilate(erodedTriplesOneChannel, dilatedTriplesOneChannel, getStructuringElement(MORPH_ELLIPSE, Size(3,3)));
   //displayAndDump(erodedTriplesOneChannel, "extracted_triples_eroded");//TODO
   
   Mat preprocessedOneChannel = dilatedTriplesOneChannel;

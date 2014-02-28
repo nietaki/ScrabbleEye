@@ -31,8 +31,9 @@ namespace se {
   const int DEFAULT_WINDOW_WIDTH = 1024;
   const int DEFAULT_WINDOW_HEIGHT = 768;
   
-  const int GAUSSIAN_SIZE = 7;
-  const double GAUSSIAN_SIGMA = 4.0;
+  const int MEDIAN_SIZE = 3;
+  const int GAUSSIAN_SIZE = 3;
+  const double GAUSSIAN_SIGMA = 2.0;
 }
 
 #endif // CONSTANTS_HPP

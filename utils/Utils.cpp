@@ -2,7 +2,6 @@
 #include <fstream>
 #include <streambuf>
 #include <iostream>
-#include <cassert>
 
 #include "Utils.hpp"
 #include "constants.hpp"
@@ -23,7 +22,7 @@ namespace se {
    */
   vector<Scalar> Utils::getColors(int count)
   {
-    assert(count <= 8);
+    CV_Assert(count <= 8);
     vector<Scalar> colors;
     colors.push_back(Scalar(255,0,0));
     colors.push_back(Scalar(255,255,0));
@@ -81,9 +80,9 @@ namespace se {
   {
     vector<Segment>::iterator target1, target2;
     target1 = find(segments.begin(), segments.end(), firstSegment);
-    assert(target1 != segments.end());
+    CV_Assert(target1 != segments.end());
     target2 = target1+1;
-    assert(target2 != segments.end());
+    CV_Assert(target2 != segments.end());
     
     target1->second = target2->second;
     segments.erase(target2);

@@ -19,7 +19,6 @@
 */
 
 #include <vector>
-#include <cassert>
 #include <iostream>
 #include <exception>
 
@@ -53,13 +52,18 @@ void ImageOperations::extractTriples(InputArray boardImageArray, OutputArray tri
   split(src_hsv, hsv_channels);
   split(boardImage, bgr_channels);
 
-  int h_lower_tresh, h_upper_tresh, sat_tresh, val_tresh;
+  unsigned char h_lower_tresh, h_upper_tresh, sat_tresh, val_tresh;
   h_lower_tresh = 7; // x degrees
+  h_lower_tresh = 5; // x degrees
   h_upper_tresh = 179 - h_lower_tresh;
   sat_tresh = 255 * 65 / 100; 
-  val_tresh = 255 * 5 / 10;
+  sat_tresh = 255 * 6 / 10; 
+  val_tresh = 255 * 4 / 10;
   Mat h_lower, h_upper, sat, val, output;
   
+  int x = 1519;
+  int y = 570;
+  //std::cout << "the pixel " << (uint)hsv_channels[0].at<unsigned char>(y, x) << "," << (uint)hsv_channels[1].at<unsigned char>(y, x) << "," << (uint)hsv_channels[2].at<unsigned char>() << std::endl;
   compare(hsv_channels[0], h_lower_tresh, h_lower, CMP_LE); 
   compare(hsv_channels[0], h_upper_tresh, h_upper, CMP_GE); 
   
@@ -118,8 +122,8 @@ void ImageOperations::clusterTriples(InputArray inputArray, OutputArray labels, 
 
 void ImageOperations::fixclusterCentres(InputArray image, vector<Point2i>& centers)
 {
-  assert(image.channels() == 1);
-  assert(image.depth() == CV_8U);
+  CV_Assert(image.channels() == 1);
+  CV_Assert(image.depth() == CV_8U);
   Mat imageMat = image.getMat();
   
   for(int idx = 0; idx < centers.size(); idx++) {
